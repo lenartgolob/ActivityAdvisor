@@ -1,4 +1,8 @@
+com\kumuluzee\xcontext\Gyroscope.class
+com\kumuluzee\xcontext\XContextFilter.class
+com\kumuluzee\xcontext\MagneticField.class
 com\kumuluzee\xcontext\XContext.class
 com\kumuluzee\xcontext\ActivityAdvisorResource.class
+com\kumuluzee\xcontext\Accelerometer.class
 com\kumuluzee\xcontext\Location.class
 com\kumuluzee\xcontext\ActivityAdvisorApplication.class

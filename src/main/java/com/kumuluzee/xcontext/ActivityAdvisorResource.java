@@ -1,5 +1,6 @@
 package com.kumuluzee.xcontext;
 
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.core.Response;
 import javax.enterprise.context.RequestScoped;
@@ -12,9 +13,13 @@ import javax.ws.rs.core.MediaType;
 @Path("/")
 public class ActivityAdvisorResource {
 
+    @Inject
+    private XContext xContext;
+
     @GET
-    public Response getXContext(@HeaderParam("X-Context") String xContext) {
-        System.out.println(xContext);
+    public Response getXContext() {
+        System.out.println("Resource:");
+        System.out.println(xContext.getBatteryPercentage());
         return Response.ok().build();
     }
 

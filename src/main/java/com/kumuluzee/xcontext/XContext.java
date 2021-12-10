@@ -5,6 +5,9 @@ public class XContext{
     public int ambientLight;
     public int steps;
     public int batteryPercentage;
+    public Gyroscope gyroscope;
+    public Accelerometer accelerometer;
+    public MagneticField magneticField;
     public int ambientPressure;
     public double temperature;
     public double relativeHumidity;
@@ -23,6 +26,18 @@ public class XContext{
 
     public int getBatteryPercentage() {
         return batteryPercentage;
+    }
+
+    public Gyroscope getGyroscope() {
+        return gyroscope;
+    }
+
+    public Accelerometer getAccelerometer() {
+        return accelerometer;
+    }
+
+    public MagneticField getMagneticField() {
+        return magneticField;
     }
 
     public int getAmbientPressure() {
@@ -51,6 +66,18 @@ public class XContext{
 
     public void setBatteryPercentage(int batteryPercentage) {
         this.batteryPercentage = batteryPercentage;
+    }
+
+    public void setGyroscope(Gyroscope gyroscope) {
+        this.gyroscope = gyroscope;
+    }
+
+    public void setAccelerometer(Accelerometer accelerometer) {
+        this.accelerometer = accelerometer;
+    }
+
+    public void setMagneticField(MagneticField magneticField) {
+        this.magneticField = magneticField;
     }
 
     public void setAmbientPressure(int ambientPressure) {
