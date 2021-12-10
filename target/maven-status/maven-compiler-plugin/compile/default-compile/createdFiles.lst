@@ -1,2 +1,4 @@
-com\kumuluzee\xcontext\ActivityAdvisorApplication.class
+com\kumuluzee\xcontext\XContext.class
 com\kumuluzee\xcontext\ActivityAdvisorResource.class
+com\kumuluzee\xcontext\Location.class
+com\kumuluzee\xcontext\ActivityAdvisorApplication.class
