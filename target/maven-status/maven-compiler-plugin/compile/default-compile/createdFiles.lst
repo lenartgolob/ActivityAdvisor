@@ -1,4 +1,5 @@
 com\kumuluzee\xcontext\Gyroscope.class
+com\kumuluzee\xcontext\Context.class
 com\kumuluzee\xcontext\XContextFilter.class
 com\kumuluzee\xcontext\MagneticField.class
 com\kumuluzee\xcontext\XContext.class

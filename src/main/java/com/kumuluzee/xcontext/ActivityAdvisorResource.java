@@ -19,7 +19,7 @@ public class ActivityAdvisorResource {
     @GET
     public Response getXContext() {
         System.out.println("Resource:");
-        System.out.println(xContext.getBatteryPercentage());
+        System.out.println(xContext.getContext().getLocation().getLatitude());
         return Response.ok().build();
     }
 

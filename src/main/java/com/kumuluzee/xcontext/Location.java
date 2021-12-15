@@ -1,8 +1,8 @@
 package com.kumuluzee.xcontext;
 
 public class Location{
-    public double latitude;
-    public double longitude;
+    private double latitude;
+    private double longitude;
 
     public double getLatitude() {
         return latitude;

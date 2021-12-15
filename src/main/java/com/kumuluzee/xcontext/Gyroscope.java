@@ -1,9 +1,9 @@
 package com.kumuluzee.xcontext;
 
 public class Gyroscope{
-    public double axisX;
-    public double axisY;
-    public double axisZ;
+    private double axisX;
+    private double axisY;
+    private double axisZ;
 
     public double getAxisX() {
         return axisX;

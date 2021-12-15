@@ -1,9 +1,9 @@
 package com.kumuluzee.xcontext;
 
 public class MagneticField{
-    public double x;
-    public double y;
-    public double z;
+    private double x;
+    private double y;
+    private double z;
 
     public double getX() {
         return x;

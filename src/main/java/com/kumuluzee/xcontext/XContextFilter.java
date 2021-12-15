@@ -18,8 +18,9 @@ public class XContextFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext reqContext) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         String xContextJSON = reqContext.getHeaderString("X-Context");
-        xContext = objectMapper.readValue(xContextJSON, XContext.class);
+        Context localContext = objectMapper.readValue(xContextJSON, Context.class);
+        xContext.setContext(localContext);
         System.out.println("Filter:");
-        System.out.println(xContext.getBatteryPercentage());
+        System.out.println(localContext.getBatteryPercentage());
     }
 }
