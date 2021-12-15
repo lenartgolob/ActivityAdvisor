@@ -1,35 +1,38 @@
 package com.kumuluzee.xcontext;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.enterprise.context.RequestScoped;
 
 /*
 @RequestScoped ?
 */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Context{
     private Location location;
-    private int ambientLight;
-    private int steps;
-    private int batteryPercentage;
+    private Integer ambientLight;
+    private Integer steps;
+    private Integer batteryPercentage;
     private Gyroscope gyroscope;
     private Accelerometer accelerometer;
     private MagneticField magneticField;
-    private int ambientPressure;
-    private double temperature;
-    private double relativeHumidity;
+    private Integer ambientPressure;
+    private Double temperature;
+    private Double relativeHumidity;
 
     public Location getLocation() {
         return location;
     }
 
-    public int getAmbientLight() {
+    public Integer getAmbientLight() {
         return ambientLight;
     }
 
-    public int getSteps() {
+    public Integer getSteps() {
         return steps;
     }
 
-    public int getBatteryPercentage() {
+    public Integer getBatteryPercentage() {
         return batteryPercentage;
     }
 
@@ -45,15 +48,15 @@ public class Context{
         return magneticField;
     }
 
-    public int getAmbientPressure() {
+    public Integer getAmbientPressure() {
         return ambientPressure;
     }
 
-    public double getTemperature() {
+    public Double getTemperature() {
         return temperature;
     }
 
-    public double getRelativeHumidity() {
+    public Double getRelativeHumidity() {
         return relativeHumidity;
     }
 
@@ -61,15 +64,15 @@ public class Context{
         this.location = location;
     }
 
-    public void setAmbientLight(int ambientLight) {
+    public void setAmbientLight(Integer ambientLight) {
         this.ambientLight = ambientLight;
     }
 
-    public void setSteps(int steps) {
+    public void setSteps(Integer steps) {
         this.steps = steps;
     }
 
-    public void setBatteryPercentage(int batteryPercentage) {
+    public void setBatteryPercentage(Integer batteryPercentage) {
         this.batteryPercentage = batteryPercentage;
     }
 
@@ -85,15 +88,15 @@ public class Context{
         this.magneticField = magneticField;
     }
 
-    public void setAmbientPressure(int ambientPressure) {
+    public void setAmbientPressure(Integer ambientPressure) {
         this.ambientPressure = ambientPressure;
     }
 
-    public void setTemperature(double temperature) {
+    public void setTemperature(Double temperature) {
         this.temperature = temperature;
     }
 
-    public void setRelativeHumidity(double relativeHumidity) {
+    public void setRelativeHumidity(Double relativeHumidity) {
         this.relativeHumidity = relativeHumidity;
     }
 }
