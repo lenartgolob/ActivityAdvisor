@@ -1,8 +1,11 @@
+com\kumuluzee\xcontext\ActivityAdvisorAPI$7.class
 com\kumuluzee\xcontext\ActivityResponse.class
 com\kumuluzee\xcontext\XContext.class
+com\kumuluzee\xcontext\APIResponses\ReverseGeocode.class
 com\kumuluzee\xcontext\ActivityAdvisorApplication.class
 com\kumuluzee\xcontext\APIResponses\Restaurant.class
 com\kumuluzee\xcontext\APIResponses\TrueWayResponse.class
+com\kumuluzee\xcontext\ActivityAdvisorAPI$8.class
 com\kumuluzee\xcontext\ActivityAdvisorAPI$4.class
 com\kumuluzee\xcontext\ActivityAdvisorAPI$3.class
 com\kumuluzee\xcontext\Context.class
