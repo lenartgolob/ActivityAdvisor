@@ -1,0 +1,17 @@
+Restaurants
+Attractions
+Movies
+TrueWay tipi: 
+amusement_park
+aquarium
+art_gallery
+bowling
+cafe
+casino
+cinema
+gym
+museum
+night_club
+restaurant
+spa
+tourist_attraction

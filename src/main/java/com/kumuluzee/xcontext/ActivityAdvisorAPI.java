@@ -3,6 +3,7 @@ package com.kumuluzee.xcontext;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kumuluzee.xcontext.APIResponses.Restaurant;
+import com.kumuluzee.xcontext.APIResponses.TrueWayResponse;
 import org.json.JSONObject;
 
 import javax.enterprise.context.RequestScoped;
@@ -11,8 +12,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.List;
-import java.util.Random;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 
 @RequestScoped
@@ -20,6 +21,261 @@ public class ActivityAdvisorAPI {
 
     @Inject
     private XContext xContext;
+
+    public ActivityResponse getActivity() throws Exception{
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
+        if(xContext.getContext().getLocation() != null){
+            if(xContext.getContext().getTime() != null){
+                System.out.println(getActivityBasedOnTime());
+            }
+
+        } else {
+
+        }
+        ActivityResponse activity = new ActivityResponse("neki");
+        return activity;
+    }
+
+    public String timePeriod() throws Exception{
+        String morningUpperEdge = "10:00:01";
+        String noonUpperEdge = "15:00:01";
+        String eveningUpperEdge = "20:00:01";
+        String nightUpperEdge = "23:59:59";
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+        String timeOnly = sdf.format(xContext.getContext().getTime());
+
+        Date timeMorning = sdf.parse(morningUpperEdge);
+        Date timeNoon = sdf.parse(noonUpperEdge);
+        Date timeEvening = sdf.parse(eveningUpperEdge);
+        Date timeNight = sdf.parse(nightUpperEdge);
+        Date timeContext = sdf.parse(timeOnly);
+
+        Calendar calendarMorning = Calendar.getInstance();
+        calendarMorning.setTime(timeMorning);
+        calendarMorning.add(Calendar.DATE, 1);
+
+        Calendar calendarNoon = Calendar.getInstance();
+        calendarNoon.setTime(timeNoon);
+        calendarNoon.add(Calendar.DATE, 1);
+
+        Calendar calendarEvening = Calendar.getInstance();
+        calendarEvening.setTime(timeEvening);
+        calendarEvening.add(Calendar.DATE, 1);
+
+        Calendar calendarNight = Calendar.getInstance();
+        calendarNight.setTime(timeNight);
+        calendarNight.add(Calendar.DATE, 1);
+
+        Calendar calendarContext = Calendar.getInstance();
+        calendarContext.setTime(timeContext);
+        calendarContext.add(Calendar.DATE, 1);
+
+        Date x = calendarContext.getTime();
+        String timePeriod = "";
+        if (x.before(calendarMorning.getTime())) {
+            timePeriod = "Morning";
+        }
+        else if(x.after(calendarMorning.getTime()) && x.before(calendarNoon.getTime())){
+            timePeriod = "Noon";
+        }
+        else if(x.after(calendarNoon.getTime()) && x.before(calendarEvening.getTime())){
+            timePeriod = "Evening";
+        }
+        else if(x.after(calendarEvening.getTime()) && x.before(calendarNight.getTime())){
+            timePeriod = "Night";
+        }
+        return timePeriod;
+    }
+
+    public String getTrueWay(double lat, double lng, String type, int radius) throws Exception{
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://trueway-places.p.rapidapi.com/FindPlacesNearby?location=" + lat + "%2C" + lng + "&type=" + type + "&radius=" + radius + "&language=en"))
+                .header("x-rapidapi-host", "trueway-places.p.rapidapi.com")
+                .header("x-rapidapi-key", "67a73ab195msh9badd398a85a65bp11b277jsna7322fef16c1")
+                .method("GET", HttpRequest.BodyPublishers.noBody())
+                .build();
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+    public String getActivityBasedOnTime() throws Exception{
+        int radius;
+        if(xContext.getContext().getBatteryPercentage() == null){
+            radius = 10000;
+        } else {
+            if(xContext.getContext().getBatteryPercentage()>30){
+                radius = 10000;
+            } else {
+                radius = 2000;
+            }
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
+        Random rand = new Random();
+        int randType=0, randResult;
+        String timePeriod = timePeriod();
+        if(timePeriod.equals("Morning")){
+            ArrayList<String> morningActivities = new ArrayList<String>();
+            morningActivities.add("tourist_attraction");
+            morningActivities.add("cafe");
+            morningActivities.add("amusement_park");
+            morningActivities.add("gym");
+            morningActivities.add("spa");
+            while(morningActivities.size()>0){
+                randType = rand.nextInt(morningActivities.size());
+                JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), morningActivities.get(randType), radius));
+                destinations = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<TrueWayResponse>>(){});
+                if(destinations.size()>0){
+                    break;
+                } else {
+                    morningActivities.remove(randType);
+                }
+            }
+            if(morningActivities.size()>0){
+                randResult = rand.nextInt(destinations.size());
+                TrueWayResponse activityDestination = destinations.get(randResult);
+                String msg = "";
+                switch(morningActivities.get(randType)){
+                    case "tourist_attraction":
+                        msg = "Start your day with an adventure and visit a tourist attraction " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                    case "cafe":
+                        msg = "Nothing like a cup of coffe in the morning, so visit café " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                    case "amusement_park":
+                        msg = "Start your day with an adventure and visit an amusement park " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                    case "gym":
+                        msg = "Stop sitting around and visit your local gym " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                    case "spa":
+                        msg = "Let me guess, you could use a day off. Relax and visit a local spa " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                }
+                return msg;
+            } else {
+                return "I couldn't find any morning activities for you, try again later.";
+            }
+        }
+        else if(timePeriod.equals("Noon")){
+            ArrayList<String> noonActivities = new ArrayList<String>();
+            noonActivities.add("restaurant");
+            noonActivities.add("aquarium");
+            noonActivities.add("gym");
+            noonActivities.add("art-gallery");
+            noonActivities.add("museum");
+            while(noonActivities.size()>0){
+                randType = rand.nextInt(noonActivities.size());
+                JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), noonActivities.get(randType), radius));
+                destinations = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<TrueWayResponse>>(){});
+                if(destinations.size()>0){
+                    break;
+                } else {
+                    noonActivities.remove(randType);
+                }
+            }
+            if(noonActivities.size()>0){
+                randResult = rand.nextInt(destinations.size());
+                TrueWayResponse activityDestination = destinations.get(randResult);
+                String msg = "";
+                switch(noonActivities.get(randType)){
+                    case "restaurant":
+                        msg = "You are not a robot right? Then you like good food so visit restaurant " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                    case "aquarium":
+                        msg = "Who doesn't want to see a shark? Visit your local aquarium " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                    case "art-gallery":
+                        msg = "Go to an art-gallery and admire some artistic masterpieces in " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                    case "gym":
+                        msg = "Stop sitting around and visit your local gym " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                    case "museum":
+                        msg = "There's nothing wrong with broadening your horizons so you should visit museum " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                }
+                return msg;
+            } else {
+                return "I couldn't find any noon activities for you, try again later.";
+            }
+
+        }
+        else if(timePeriod.equals("Evening")){
+            ArrayList<String> eveningActivities = new ArrayList<String>();
+            eveningActivities.add("bowling");
+            eveningActivities.add("restaurant");
+            eveningActivities.add("cinema");
+            eveningActivities.add("gym");
+            while(eveningActivities.size()>0){
+                randType = rand.nextInt(eveningActivities.size());
+                JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), eveningActivities.get(randType), radius));
+                destinations = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<TrueWayResponse>>(){});
+                if(destinations.size()>0){
+                    break;
+                } else {
+                    eveningActivities.remove(randType);
+                }
+            }
+            if(eveningActivities.size()>0){
+                randResult = rand.nextInt(destinations.size());
+                TrueWayResponse activityDestination = destinations.get(randResult);
+                String msg = "";
+                switch(eveningActivities.get(randType)){
+                    case "restaurant":
+                        msg = "You are not a robot right? Then you like good food so visit restaurant " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                    case "bowling":
+                        msg = "I bet you haven't bowled in quite some time! You are missing out so go on and head to your local bowling alley " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                    case "cinema":
+                        msg = "You had a long and exhausting day and want to relax? Sounds good, visit your local cinema " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                    case "gym":
+                        msg = "Stop sitting around and visit your local gym " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress()  + ".";
+                        break;
+                }
+                return msg;
+            } else {
+                return "I couldn't find any evening activities for you, try again later.";
+            }
+
+        }
+        else if(timePeriod.equals("Night")){
+            ArrayList<String> nightActivities = new ArrayList<String>();
+            nightActivities.add("night_club");
+            nightActivities.add("casino");
+            while(nightActivities.size()>0){
+                randType = rand.nextInt(nightActivities.size());
+                JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), nightActivities.get(randType), radius));
+                destinations = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<TrueWayResponse>>(){});
+                if(destinations.size()>0){
+                    break;
+                } else {
+                    nightActivities.remove(randType);
+                }
+            }
+            if(nightActivities.size()>0){
+                randResult = rand.nextInt(destinations.size());
+                TrueWayResponse activityDestination = destinations.get(randResult);
+                String msg = "";
+                switch(nightActivities.get(randType)){
+                    case "night_club":
+                        msg = "You want to blow of some steam? Visit a night club " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                    case "casino":
+                        msg = "If you are a gambler you should visit your local casino " + activityDestination.getName() + ". It's located on " + activityDestination.getAddress() + ".";
+                        break;
+                }
+                return msg;
+            } else {
+                return "I couldn't find any night life activities for you, try again later.";
+            }
+
+        }
+        return "I couldn't find any morning activities for you, try again later.";
+    }
 
     public ActivityResponse getRestaurant() throws Exception{
         ObjectMapper objectMapper = new ObjectMapper();

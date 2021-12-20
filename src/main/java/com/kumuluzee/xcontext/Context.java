@@ -1,8 +1,11 @@
 package com.kumuluzee.xcontext;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.enterprise.context.RequestScoped;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /*
 @RequestScoped ?
@@ -13,12 +16,11 @@ public class Context{
     private Integer ambientLight;
     private Integer steps;
     private Integer batteryPercentage;
-    private Gyroscope gyroscope;
-    private Accelerometer accelerometer;
-    private MagneticField magneticField;
     private Integer ambientPressure;
     private Double temperature;
     private Double relativeHumidity;
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="HH:mm:ss", timezone="CET")
+    private Date time;
 
     public Location getLocation() {
         return location;
@@ -36,18 +38,6 @@ public class Context{
         return batteryPercentage;
     }
 
-    public Gyroscope getGyroscope() {
-        return gyroscope;
-    }
-
-    public Accelerometer getAccelerometer() {
-        return accelerometer;
-    }
-
-    public MagneticField getMagneticField() {
-        return magneticField;
-    }
-
     public Integer getAmbientPressure() {
         return ambientPressure;
     }
@@ -59,6 +49,8 @@ public class Context{
     public Double getRelativeHumidity() {
         return relativeHumidity;
     }
+
+    public Date getTime() { return time; }
 
     public void setLocation(Location location) {
         this.location = location;
@@ -76,18 +68,6 @@ public class Context{
         this.batteryPercentage = batteryPercentage;
     }
 
-    public void setGyroscope(Gyroscope gyroscope) {
-        this.gyroscope = gyroscope;
-    }
-
-    public void setAccelerometer(Accelerometer accelerometer) {
-        this.accelerometer = accelerometer;
-    }
-
-    public void setMagneticField(MagneticField magneticField) {
-        this.magneticField = magneticField;
-    }
-
     public void setAmbientPressure(Integer ambientPressure) {
         this.ambientPressure = ambientPressure;
     }
@@ -99,4 +79,6 @@ public class Context{
     public void setRelativeHumidity(Double relativeHumidity) {
         this.relativeHumidity = relativeHumidity;
     }
+
+    public void setTime(Date time) { this.time = time; }
 }

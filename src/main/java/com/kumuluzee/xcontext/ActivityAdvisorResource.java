@@ -25,7 +25,7 @@ public class ActivityAdvisorResource {
 
     @GET
     public Response getXContext() throws Exception {
-        System.out.println("Resource:");
+/*        System.out.println("Resource:");
         if(xContext.getContext().getLocation() != null){
             System.out.println("lokacija je");
             if(xContext.getContext().getBatteryPercentage() != null ){
@@ -38,7 +38,9 @@ public class ActivityAdvisorResource {
             }
         } else {
             System.out.println("lokacije ni");
-        }
+        }*/
+        ActivityResponse activityResponse = advisorBean.getActivity();
+
         return Response.ok().build();
     }
 
