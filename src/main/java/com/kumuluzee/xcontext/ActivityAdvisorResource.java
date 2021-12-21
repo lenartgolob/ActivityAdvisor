@@ -25,23 +25,10 @@ public class ActivityAdvisorResource {
 
     @GET
     public Response getXContext() throws Exception {
-/*        System.out.println("Resource:");
-        if(xContext.getContext().getLocation() != null){
-            System.out.println("lokacija je");
-            if(xContext.getContext().getBatteryPercentage() != null ){
-                System.out.println("notr");
-                System.out.println(advisorBean.getRestaurant().getMessage());
-                ActivityResponse activityResponse = advisorBean.getRestaurant();
-                return activityResponse != null
-                        ? Response.ok(activityResponse).build()
-                        : Response.status(Response.Status.NOT_FOUND).build();
-            }
-        } else {
-            System.out.println("lokacije ni");
-        }*/
         ActivityResponse activityResponse = advisorBean.getActivity();
-
-        return Response.ok().build();
+        return activityResponse != null
+                ? Response.ok(activityResponse).build()
+                : Response.status(Response.Status.NOT_FOUND).build();
     }
 
 }

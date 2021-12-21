@@ -2,7 +2,6 @@ package com.kumuluzee.xcontext;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kumuluzee.xcontext.APIResponses.Restaurant;
 import com.kumuluzee.xcontext.APIResponses.ReverseGeocode;
 import com.kumuluzee.xcontext.APIResponses.TrueWayResponse;
 import org.json.JSONObject;
@@ -26,15 +25,66 @@ public class ActivityAdvisorAPI {
     public ActivityResponse getActivity() throws Exception{
         ObjectMapper objectMapper = new ObjectMapper();
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
+        if(xContext.getContext().getSteps() == null){
+            System.out.println("aloooo");
+        } else {
+            System.out.println("yessir");
+        }
+        // Lokacija je
         if(xContext.getContext().getLocation() != null){
-            if(xContext.getContext().getTime() != null){
-                System.out.println(getActivityBasedOnTime());
+            // Korakov ni
+            if(xContext.getContext().getSteps() == null){
+                // Čas je
+                if(xContext.getContext().getTime() != null){
+                    return new ActivityResponse(getActivityBasedOnTime());
+                }
+                // Časa ni, temperatura je
+                else if(xContext.getContext().getTemperature() != null){
+                    return new ActivityResponse(getActivityBasedOnTemperature());
+                } else {
+                    return new ActivityResponse(getActivityBasedOnLocation());
+                }
             }
+            // Koraki so
+            else {
+                // Korakov je veliko
+                if(xContext.getContext().getSteps() > 10000){
+                    return new ActivityResponse(getActivityStepsHigh());
+                } else { // Zanemarimo korake, saj niso ekstremi
+                    // Čas je
+                    if(xContext.getContext().getTime() != null){
+                        return new ActivityResponse(getActivityBasedOnTime());
+                    }
+                    // Časa ni, temperatura je
+                    else if(xContext.getContext().getTemperature() != null){
+                        return new ActivityResponse(getActivityBasedOnTemperature());
+                    } else {
+                        return new ActivityResponse(getActivityBasedOnLocation());
+                    }
+                }
+            }
+
         }
-        if(xContext.getContext().getTime() == null && xContext.getContext().getTemperature() == null){
-            System.out.println(getActivityBasedOnLocation());
+        // Lokacije ni
+        else {
+            // Korakov ni
+            if(xContext.getContext().getSteps() == null){
+                if(xContext.getContext().getTime() != null && xContext.getContext().getTemperature() != null){
+
+                }
+            }
+            // Koraki so
+            else {
+                if(xContext.getContext().getSteps() > 10000){
+                    return new ActivityResponse("I see you've been very active today, so you deserve some relaxation. I recommend to finally watch that movie you downloaded, but never ended up watching it.");
+                } else {
+
+                }
+            }
+
         }
-        ActivityResponse activity = new ActivityResponse("neki");
+
+        ActivityResponse activity = new ActivityResponse("empty");
         return activity;
     }
 
@@ -89,6 +139,7 @@ public class ActivityAdvisorAPI {
         return timePeriod;
     }
 
+    // Gets a destination from TrueWay API
     public String getTrueWay(double lat, double lng, String type, int radius) throws Exception{
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://trueway-places.p.rapidapi.com/FindPlacesNearby?location=" + lat + "%2C" + lng + "&type=" + type + "&radius=" + radius + "&language=en"))
@@ -100,6 +151,7 @@ public class ActivityAdvisorAPI {
         return response.body();
     }
 
+    // Gets address from latitude and longitude from TrueWay API
     public String reverseGeocode(double lat, double lng) throws Exception{
         ObjectMapper objectMapper = new ObjectMapper();
         HttpRequest request = HttpRequest.newBuilder()
@@ -114,8 +166,10 @@ public class ActivityAdvisorAPI {
         return addresses.get(0).getAddress();
     }
 
+    // Prilagojen tudi na baterijo in temperaturo
     public String getActivityBasedOnTime() throws Exception{
         int radius;
+        // Changes radius of results based on battery %
         if(xContext.getContext().getBatteryPercentage() == null){
             radius = 10000;
         } else {
@@ -132,6 +186,24 @@ public class ActivityAdvisorAPI {
         String timePeriod = timePeriod();
         if(timePeriod.equals("Morning")){
             ArrayList<String> morningActivities = new ArrayList<String>();
+            if(xContext.getContext().getTemperature() != null){
+                // Če je toplo, dodamo več zunanjih aktivnosti v seznam, da je večja verjetnost da izbere te.
+                if(xContext.getContext().getTemperature()>10){
+                    morningActivities.add("tourist_attraction");
+                    morningActivities.add("amusement_park");
+                    morningActivities.add("tourist_attraction");
+                    morningActivities.add("amusement_park");
+                }
+                // Če pa je mrzlo pa dodamo več notranjih aktivnosti
+                else {
+                    morningActivities.add("cafe");
+                    morningActivities.add("gym");
+                    morningActivities.add("spa");
+                    morningActivities.add("cafe");
+                    morningActivities.add("gym");
+                    morningActivities.add("spa");
+                }
+            }
             morningActivities.add("tourist_attraction");
             morningActivities.add("cafe");
             morningActivities.add("amusement_park");
@@ -263,7 +335,7 @@ public class ActivityAdvisorAPI {
                         msg = "I bet you haven't bowled in quite some time! You are missing out so go on and head to your local bowling alley " + activityDestination.getName() + ". It's located on " + address + ".";
                         break;
                     case "cinema":
-                        msg = "You had a long and exhausting day and want to relax? Sounds good, visit your local cinema " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "You had a long and exhausting day and want to relax? Can't really beat a good movie in your local cinema " + activityDestination.getName() + ". It's located on " + address + ".";
                         break;
                     case "gym":
                         msg = "Stop sitting around and visit your local gym " + activityDestination.getName() + ". It's located on " + address  + ".";
@@ -273,7 +345,6 @@ public class ActivityAdvisorAPI {
             } else {
                 return "I couldn't find any evening activities for you, try again later.";
             }
-
         }
         else if(timePeriod.equals("Night")){
             ArrayList<String> nightActivities = new ArrayList<String>();
@@ -311,9 +382,8 @@ public class ActivityAdvisorAPI {
             } else {
                 return "I couldn't find any night life activities for you, try again later.";
             }
-
         }
-        return "I couldn't find any morning activities for you, try again later.";
+        return "I couldn't find any activities for you, try again later.";
     }
 
     public String getActivityBasedOnLocation() throws Exception{
@@ -373,7 +443,7 @@ public class ActivityAdvisorAPI {
             String msg = "";
             switch(activities.get(randType)){
                 case "amusement_park":
-                    msg = "Start your day with an adventure and visit an amusement park " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "Go on an adventure and visit an amusement park " + activityDestination.getName() + ". It's located on " + address + ".";
                     break;
                 case "aquarium":
                     msg = "Who doesn't want to see a shark? Visit your local aquarium " + activityDestination.getName() + ". It's located on " + address + ".";
@@ -391,7 +461,7 @@ public class ActivityAdvisorAPI {
                     msg = "If you are a gambler you should visit your local casino " + activityDestination.getName() + ". It's located on " + address + ".";
                     break;
                 case "cinema":
-                    msg = "You had a long and exhausting day and want to relax? Sounds good, visit your local cinema " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "You had a long and exhausting day and want to relax? Can't really beat a good movie in your local cinema " + activityDestination.getName() + ". It's located on " + address + ".";
                     break;
                 case "gym":
                     msg = "Stop sitting around and visit your local gym " + activityDestination.getName() + ". It's located on " + address + ".";
@@ -409,7 +479,7 @@ public class ActivityAdvisorAPI {
                     msg = "Let me guess, you could use a day off. Relax and visit a local spa " + activityDestination.getName() + ". It's located on " + address + ".";
                     break;
                 case "tourist_attraction":
-                    msg = "Start your day with an adventure and visit a tourist attraction " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "Go on an adventure and visit a tourist attraction " + activityDestination.getName() + ". It's located on " + address + ".";
                     break;
             }
             return msg;
@@ -418,68 +488,182 @@ public class ActivityAdvisorAPI {
         }
     }
 
-    public ActivityResponse getRestaurant() throws Exception{
-        ObjectMapper objectMapper = new ObjectMapper();
-        Random rand = new Random();
-        int i;
-
-/*        for(Restaurant r : restaurants){
-            r.setDistance(distance(xContext.getContext().getLocation().getLatitude(), r.getLatitude(), xContext.getContext().getLocation().getLongitude(), r.getLongitude(), 0.0, 0.0));
-        }*/
-        if(xContext.getContext().getBatteryPercentage() > 30){
-            // Searches restaurants in 10km vacinity
-            JSONObject json = new JSONObject(getRestaurants(10));
-            List<Restaurant> restaurants = objectMapper.readValue(json.getJSONArray("data").toString(), new TypeReference<List<Restaurant>>(){});
-            for(Restaurant r : restaurants){
-            }
-            do{
-                i = rand.nextInt(restaurants.size());
-            }while (restaurants.get(i).getName() == null && restaurants.get(i).getAddress() == null);
-            ActivityResponse activityResponse = new ActivityResponse("I hope you're hungry, because Activity Advisor found a restaurant called " + restaurants.get(i).getName() + ". The restaurant is located on " + restaurants.get(i).getAddress() + " and don't worry, you've got enough juice to make the trip!");
-            return activityResponse;
+    public String getActivityStepsHigh() throws Exception {
+        int radius;
+        if(xContext.getContext().getBatteryPercentage() == null){
+            radius = 10000;
         } else {
-            // Searches restaurants in 1km vacinity
-            JSONObject json = new JSONObject(getRestaurants(1));
-            List<Restaurant> restaurants = objectMapper.readValue(json.getJSONArray("data").toString(), new TypeReference<List<Restaurant>>(){});
-            do{
-                i = rand.nextInt(restaurants.size());
-            }while (restaurants.get(i).getName() == null && restaurants.get(i).getAddress() == null);
-            ActivityResponse activityResponse = new ActivityResponse("I hope you're hungry, because Activity Advisor found a restaurant called " + restaurants.get(i).getName() + ". The restaurant is located on " + restaurants.get(i).getAddress() + " and don't worry, you've got enough juice to make the trip!");
-            return activityResponse;
-
+            if(xContext.getContext().getBatteryPercentage()>30){
+                radius = 10000;
+            } else {
+                radius = 2000;
+            }
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
+        Random rand = new Random();
+        int randType=0, randResult;
+        ArrayList<String> activities = new ArrayList<String>();
+        activities.add("cinema");
+        activities.add("restaurant");
+        activities.add("spa");
+        while(activities.size()>0){
+            randType = rand.nextInt(activities.size());
+            System.out.println("tip: " + randType);
+            JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activities.get(randType), radius));
+            if(json == null){
+                activities.remove(randType);
+                continue;
+            }
+            destinations = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<TrueWayResponse>>(){});
+            if(destinations.size()>0){
+                break;
+            } else {
+                activities.remove(randType);
+            }
+        }
+        if(activities.size()>0){
+            randResult = rand.nextInt(destinations.size());
+            System.out.println("index: " + randResult);
+            TrueWayResponse activityDestination = destinations.get(randResult);
+            String address;
+            if(activityDestination.getAddress() == null){
+                address = reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
+            } else {
+                address = activityDestination.getAddress();
+            }
+            String msg = "";
+            switch(activities.get(randType)){
+                case "cinema":
+                    msg = "I see you've been very active today, so you deserve some off-time. Visit your local cinema " + activityDestination.getName() + ". It's located on " + address + ".";
+                    break;
+                case "restaurant":
+                    msg = "I see you've been very active today, so I bet you wouldn't say no to a good meal in " + activityDestination.getName() + ". It's located on " + address + ".";
+                    break;
+                case "spa":
+                    msg = "You deserve some relaxation after the day you just had! Visit your local spa " + activityDestination.getName() + ". It's located on " + address + ".";
+                    break;
+            }
+            return msg;
+        } else {
+            return "I couldn't find any relaxing activities near you.";
         }
     }
 
-    public String getRestaurants(int distance) throws Exception{
-        System.out.println("meljem...");
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://travel-advisor.p.rapidapi.com/restaurants/list-by-latlng?latitude=" + xContext.getContext().getLocation().getLatitude() + "&longitude=" + xContext.getContext().getLocation().getLongitude() + "&limit=20&currency=EUR&distance=" + distance + "&open_now=false&lunit=km&lang=en_US"))
-                .header("x-rapidapi-host", "travel-advisor.p.rapidapi.com")
-                .header("x-rapidapi-key", "67a73ab195msh9badd398a85a65bp11b277jsna7322fef16c1")
-                .method("GET", HttpRequest.BodyPublishers.noBody())
-                .build();
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
-    }
+    public String getActivityBasedOnTemperature() throws Exception {
+        int radius;
+        if(xContext.getContext().getBatteryPercentage() == null){
+            radius = 10000;
+        } else {
+            if(xContext.getContext().getBatteryPercentage()>30){
+                radius = 10000;
+            } else {
+                radius = 2000;
+            }
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
+        Random rand = new Random();
+        int randType=0, randResult;
+        if(xContext.getContext().getTemperature() > 10){
+            ArrayList<String> activitiesHot = new ArrayList<String>();
+            activitiesHot.add("amusement_park");
+            activitiesHot.add("tourist_attraction");
+            while(activitiesHot.size()>0){
+                randType = rand.nextInt(activitiesHot.size());
+                JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activitiesHot.get(randType), radius));
+                destinations = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<TrueWayResponse>>(){});
+                if(destinations.size()>0){
+                    break;
+                } else {
+                    activitiesHot.remove(randType);
+                }
+            }
+            if(activitiesHot.size()>0){
+                randResult = rand.nextInt(destinations.size());
+                TrueWayResponse activityDestination = destinations.get(randResult);
+                String address;
+                if(activityDestination.getAddress() == null){
+                    address = reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
+                } else {
+                    address = activityDestination.getAddress();
+                }
+                String msg = "";
+                switch(activitiesHot.get(randType)){
+                    case "amusement_park":
+                        msg = "Since the weather is so nice outside it would be a shame to sit inside all day, so start your day with an adventure and visit an amusement park  " + activityDestination.getName() + ". It's located on " + address + ".";
+                        break;
+                    case "tourist_attraction":
+                        msg = "Since the weather is so nice outside it would be a shame to sit inside all day, so start your day with an adventure and visit a tourist attraction  " + activityDestination.getName() + ". It's located on " + address + ".";
+                        break;
+                }
+                return msg;
+            } else {
+                return "I couldn't find any outside activities for you.";
+            }
+        } else {
+            ArrayList<String> activitiesCold = new ArrayList<String>();
+            activitiesCold.add("aquarium");
+            activitiesCold.add("art_gallery");
+            activitiesCold.add("bowling");
+            activitiesCold.add("cafe");
+            activitiesCold.add("gym");
+            activitiesCold.add("museum");
+            activitiesCold.add("restaurant");
+            activitiesCold.add("spa");
+            while(activitiesCold.size()>0){
+                randType = rand.nextInt(activitiesCold.size());
+                JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activitiesCold.get(randType), radius));
+                destinations = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<TrueWayResponse>>(){});
+                if(destinations.size()>0){
+                    break;
+                } else {
+                    activitiesCold.remove(randType);
+                }
+            }
+            if(activitiesCold.size()>0){
+                randResult = rand.nextInt(destinations.size());
+                TrueWayResponse activityDestination = destinations.get(randResult);
+                String address;
+                if(activityDestination.getAddress() == null){
+                    address = reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
+                } else {
+                    address = activityDestination.getAddress();
+                }
+                String msg = "";
+                switch(activitiesCold.get(randType)){
+                    case "aquarium":
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local aquarium " + activityDestination.getName() + ". It's located on " + address + ".";
+                        break;
+                    case "art_gallery":
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local art gallery " + activityDestination.getName() + ". It's located on " + address + ".";
+                        break;
+                    case "bowling":
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local bowling alley " + activityDestination.getName() + ". It's located on " + address + ".";
+                        break;
+                    case "cafe":
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local café " + activityDestination.getName() + ". It's located on " + address + ".";
+                        break;
+                    case "gym":
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local gym " + activityDestination.getName() + ". It's located on " + address + ".";
+                        break;
+                    case "museum":
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local museum " + activityDestination.getName() + ". It's located on " + address + ".";
+                        break;
+                    case "restaurant":
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your a nearby restaurant " + activityDestination.getName() + ". It's located on " + address + ".";
+                        break;
+                    case "spa":
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local spa " + activityDestination.getName() + ". It's located on " + address + ".";
+                        break;
+                }
+                return msg;
+            } else {
+                return "I couldn't find any night life activities for you, try again later.";
+            }
 
-    // Distance in meters, el = altitude
-    public static double distance(double lat1, double lat2, double lon1,
-                                  double lon2, double el1, double el2) {
+        }
 
-        final int R = 6371; // Radius of the earth
 
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = R * c * 1000; // convert to meters
-
-        double height = el1 - el2;
-
-        distance = Math.pow(distance, 2) + Math.pow(height, 2);
-
-        return Math.sqrt(distance);
     }
 }
