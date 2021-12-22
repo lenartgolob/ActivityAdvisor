@@ -69,8 +69,8 @@ public class ActivityAdvisorAPI {
         else {
             // Korakov ni
             if(xContext.getContext().getSteps() == null){
-                if(xContext.getContext().getTime() != null && xContext.getContext().getTemperature() != null){
-
+                if(xContext.getContext().getTime() != null){
+                    return new ActivityResponse(getActivityWithoutLocation());
                 }
             }
             // Koraki so
@@ -78,14 +78,75 @@ public class ActivityAdvisorAPI {
                 if(xContext.getContext().getSteps() > 10000){
                     return new ActivityResponse("I see you've been very active today, so you deserve some relaxation. I recommend to finally watch that movie you downloaded, but never ended up watching it.");
                 } else {
-
+                    return new ActivityResponse(getActivityWithoutLocation());
                 }
             }
 
         }
+        return new ActivityResponse("I couldn't find any activity for you.");
+    }
 
-        ActivityResponse activity = new ActivityResponse("empty");
-        return activity;
+    public String getActivityWithoutLocation() throws Exception{
+        String timePeriod = timePeriod();
+        String msg = "I couldn't find any activity for you.";
+        // Če poznamo čas
+        if(xContext.getContext().getTime() != null){
+            if(xContext.getContext().getTemperature() != null){
+                if(xContext.getContext().getTemperature() > 10){
+                    switch(timePeriod){
+                        case "Morning":
+                            msg = "The weather is nice and warm so it would be a shame if you stayed inside all day. Go take a hike in nature.";
+                            break;
+                        case "Noon":
+                            msg = "It's about to be lunch time, because the weather is so nice I recommend you go for a walk and stop at a local restaurant.";
+                            break;
+                        case "Evening":
+                            msg = "You still have a little bit of time before darkness and since it's still warm go for a walk.";
+                            break;
+                        case "Night":
+                            msg = "The weather is nice so today is the perfect day for stargazing!";
+                            break;
+                    }
+                    if(xContext.getContext().getBatteryPercentage()<=30){
+                        msg = msg + " And don't wonder off to far, because your battery is running low.";
+                    }
+                } else {
+                    switch(timePeriod){
+                        case "Morning":
+                            msg = "Since it's cold outside I recommend you start your day with a cup of coffee and some reading.";
+                            break;
+                        case "Noon":
+                            msg = "You probably don't wanna be walking around and searching for a restaurant, because it's cold outside. Just head to your fridge and there is definitely something you can cook for yourself in there.";
+                            break;
+                        case "Evening":
+                            msg = "You should head to your local café for a cup of hot tea and catch up with your friends.";
+                            break;
+                        case "Night":
+                            msg = "You probably want to crawl under your blanket because of this cold weather. Well that is exactly what you should do, and don't forget to put on your favourite winter movie.";
+                            break;
+                    }
+                }
+            } else {
+                switch(timePeriod){
+                    case "Morning":
+                        msg = "Start your day with a cold shower and a book. That will set up the rest of your day perfectly.";
+                        break;
+                    case "Noon":
+                        msg = "It's about to be lunch time, I recommend you to visit a local restaurant.";
+                        break;
+                    case "Evening":
+                        msg = "You should go for a drink and catch up with your friends.";
+                        break;
+                    case "Night":
+                        msg = "Take some time off and finally watch that movie you downloaded, but never ended up watching it.";
+                        break;
+                }
+                if(xContext.getContext().getBatteryPercentage()<=30 && (timePeriod.equals("Noon") || timePeriod.equals("Evening"))){
+                    msg = msg + " And don't wonder off to far, because your battery is running low.";
+                }
+            }
+        }
+        return msg;
     }
 
     public String timePeriod() throws Exception{
