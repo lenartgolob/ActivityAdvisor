@@ -25,11 +25,6 @@ public class ActivityAdvisorAPI {
     public ActivityResponse getActivity() throws Exception{
         ObjectMapper objectMapper = new ObjectMapper();
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
-        if(xContext.getContext().getSteps() == null){
-            System.out.println("aloooo");
-        } else {
-            System.out.println("yessir");
-        }
         // Lokacija je
         if(xContext.getContext().getLocation() != null){
             // Korakov ni
@@ -341,7 +336,7 @@ public class ActivityAdvisorAPI {
                 String msg = "";
                 switch(noonActivities.get(randType)){
                     case "restaurant":
-                        msg = "You are not a robot right? Then you like good food so visit restaurant " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "I know you like good food, so visit restaurant " + activityDestination.getName() + ". It's located on " + address + ".";
                         break;
                     case "aquarium":
                         msg = "Who doesn't want to see a shark? Visit your local aquarium " + activityDestination.getName() + ". It's located on " + address + ".";
@@ -390,7 +385,7 @@ public class ActivityAdvisorAPI {
                 String msg = "";
                 switch(eveningActivities.get(randType)){
                     case "restaurant":
-                        msg = "You are not a robot right? Then you like good food so visit restaurant " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "I know you like good food, so visit restaurant " + activityDestination.getName() + ". It's located on " + address + ".";
                         break;
                     case "bowling":
                         msg = "I bet you haven't bowled in quite some time! You are missing out so go on and head to your local bowling alley " + activityDestination.getName() + ". It's located on " + address + ".";
@@ -478,7 +473,6 @@ public class ActivityAdvisorAPI {
         activities.add("tourist_attraction");
         while(activities.size()>0){
             randType = rand.nextInt(activities.size());
-            System.out.println("tip: " + randType);
             JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activities.get(randType), radius));
             if(json == null){
                 activities.remove(randType);
@@ -493,7 +487,6 @@ public class ActivityAdvisorAPI {
         }
         if(activities.size()>0){
             randResult = rand.nextInt(destinations.size());
-            System.out.println("index: " + randResult);
             TrueWayResponse activityDestination = destinations.get(randResult);
             String address;
             if(activityDestination.getAddress() == null){
@@ -516,7 +509,7 @@ public class ActivityAdvisorAPI {
                     msg = "I bet you haven't bowled in quite some time! You are missing out so go on and head to your local bowling alley " + activityDestination.getName() + ". It's located on " + address + ".";
                     break;
                 case "cafe":
-                    msg = "Nothing like a cup of coffe in the morning, so visit café " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "Nothing like a cup of coffe and a chat with your friends, so visit café " + activityDestination.getName() + ". It's located on " + address + ".";
                     break;
                 case "casino":
                     msg = "If you are a gambler you should visit your local casino " + activityDestination.getName() + ". It's located on " + address + ".";
@@ -534,7 +527,7 @@ public class ActivityAdvisorAPI {
                     msg = "You want to blow of some steam? Visit a night club " + activityDestination.getName() + ". It's located on " + address + ".";
                     break;
                 case "restaurant":
-                    msg = "You are not a robot right? Then you like good food so visit restaurant " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "I know you like good food, so visit restaurant " + activityDestination.getName() + ". It's located on " + address + ".";
                     break;
                 case "spa":
                     msg = "Let me guess, you could use a day off. Relax and visit a local spa " + activityDestination.getName() + ". It's located on " + address + ".";
@@ -570,7 +563,6 @@ public class ActivityAdvisorAPI {
         activities.add("spa");
         while(activities.size()>0){
             randType = rand.nextInt(activities.size());
-            System.out.println("tip: " + randType);
             JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activities.get(randType), radius));
             if(json == null){
                 activities.remove(randType);
@@ -585,7 +577,6 @@ public class ActivityAdvisorAPI {
         }
         if(activities.size()>0){
             randResult = rand.nextInt(destinations.size());
-            System.out.println("index: " + randResult);
             TrueWayResponse activityDestination = destinations.get(randResult);
             String address;
             if(activityDestination.getAddress() == null){

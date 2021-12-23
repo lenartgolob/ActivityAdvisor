@@ -20,7 +20,5 @@ public class XContextFilter implements ContainerRequestFilter {
         String xContextJSON = reqContext.getHeaderString("X-Context");
         Context localContext = objectMapper.readValue(xContextJSON, Context.class);
         xContext.setContext(localContext);
-        System.out.println("Filter:");
-        System.out.println(localContext.getBatteryPercentage());
     }
 }
