@@ -12,6 +12,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -200,7 +201,7 @@ public class ActivityAdvisorAPI {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://trueway-places.p.rapidapi.com/FindPlacesNearby?location=" + lat + "%2C" + lng + "&type=" + type + "&radius=" + radius + "&language=en"))
                 .header("x-rapidapi-host", "trueway-places.p.rapidapi.com")
-                .header("x-rapidapi-key", "67a73ab195msh9badd398a85a65bp11b277jsna7322fef16c1")
+                .header("x-rapidapi-key", getApiKey())
                 .method("GET", HttpRequest.BodyPublishers.noBody())
                 .build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
@@ -213,7 +214,7 @@ public class ActivityAdvisorAPI {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://trueway-geocoding.p.rapidapi.com/ReverseGeocode?location=" + lat + "%2C" + lng + "&language=en"))
                 .header("x-rapidapi-host", "trueway-geocoding.p.rapidapi.com")
-                .header("x-rapidapi-key", "67a73ab195msh9badd398a85a65bp11b277jsna7322fef16c1")
+                .header("x-rapidapi-key", getApiKey())
                 .method("GET", HttpRequest.BodyPublishers.noBody())
                 .build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
@@ -715,7 +716,11 @@ public class ActivityAdvisorAPI {
             }
 
         }
+    }
 
-
+    public String getApiKey() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, String> map = mapper.readValue(Paths.get(".secret/api_key.json").toFile(), Map.class);
+        return map.get("api_key");
     }
 }
