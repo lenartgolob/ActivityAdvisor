@@ -2,10 +2,17 @@ package com.kumuluzee.xcontext;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 
 import javax.enterprise.context.RequestScoped;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 /*
 @RequestScoped ?
@@ -19,8 +26,10 @@ public class Context{
     private Integer ambientPressure;
     private Double temperature;
     private Double relativeHumidity;
-    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="HH:mm:ss", timezone="CET")
-    private Date time;
+    @JsonDeserialize(using = LocalTimeDeserializer.class)
+    @JsonSerialize(using = LocalTimeSerializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+    private LocalTime time;
 
     public Location getLocation() {
         return location;
@@ -50,7 +59,7 @@ public class Context{
         return relativeHumidity;
     }
 
-    public Date getTime() { return time; }
+    public LocalTime getTime() { return time; }
 
     public void setLocation(Location location) {
         this.location = location;
@@ -80,5 +89,5 @@ public class Context{
         this.relativeHumidity = relativeHumidity;
     }
 
-    public void setTime(Date time) { this.time = time; }
+    public void setTime(LocalTime time) { this.time = time; }
 }

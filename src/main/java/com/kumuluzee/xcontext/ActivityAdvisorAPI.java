@@ -2,6 +2,8 @@ package com.kumuluzee.xcontext;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.kumuluzee.xcontext.APIResponses.ReverseGeocode;
 import com.kumuluzee.xcontext.APIResponses.TrueWayResponse;
 import org.json.JSONObject;
@@ -13,7 +15,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.*;
 
 
@@ -24,7 +26,6 @@ public class ActivityAdvisorAPI {
     private XContext xContext;
 
     public ActivityResponse getActivity() throws Exception{
-        ObjectMapper objectMapper = new ObjectMapper();
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
         // Lokacija je
         if(xContext.getContext().getLocation() != null){
@@ -146,51 +147,23 @@ public class ActivityAdvisorAPI {
     }
 
     public String timePeriod() throws Exception{
-        String morningUpperEdge = "10:00:01";
-        String noonUpperEdge = "15:00:01";
-        String eveningUpperEdge = "20:00:01";
-        String nightUpperEdge = "23:59:59";
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-        String timeOnly = sdf.format(xContext.getContext().getTime());
+        LocalTime morningUpperEdge = LocalTime.parse("10:00");
+        LocalTime noonUpperEdge = LocalTime.parse("15:00");
+        LocalTime eveningUpperEdge = LocalTime.parse("20:00");
+        LocalTime nightUpperEdge = LocalTime.parse("23:59");
+        LocalTime contextTime = xContext.getContext().getTime();
 
-        Date timeMorning = sdf.parse(morningUpperEdge);
-        Date timeNoon = sdf.parse(noonUpperEdge);
-        Date timeEvening = sdf.parse(eveningUpperEdge);
-        Date timeNight = sdf.parse(nightUpperEdge);
-        Date timeContext = sdf.parse(timeOnly);
-
-        Calendar calendarMorning = Calendar.getInstance();
-        calendarMorning.setTime(timeMorning);
-        calendarMorning.add(Calendar.DATE, 1);
-
-        Calendar calendarNoon = Calendar.getInstance();
-        calendarNoon.setTime(timeNoon);
-        calendarNoon.add(Calendar.DATE, 1);
-
-        Calendar calendarEvening = Calendar.getInstance();
-        calendarEvening.setTime(timeEvening);
-        calendarEvening.add(Calendar.DATE, 1);
-
-        Calendar calendarNight = Calendar.getInstance();
-        calendarNight.setTime(timeNight);
-        calendarNight.add(Calendar.DATE, 1);
-
-        Calendar calendarContext = Calendar.getInstance();
-        calendarContext.setTime(timeContext);
-        calendarContext.add(Calendar.DATE, 1);
-
-        Date x = calendarContext.getTime();
         String timePeriod = "";
-        if (x.before(calendarMorning.getTime())) {
+        if (contextTime.isBefore(morningUpperEdge)) {
             timePeriod = "Morning";
         }
-        else if(x.after(calendarMorning.getTime()) && x.before(calendarNoon.getTime())){
+        else if(contextTime.isBefore(noonUpperEdge)){
             timePeriod = "Noon";
         }
-        else if(x.after(calendarNoon.getTime()) && x.before(calendarEvening.getTime())){
+        else if(contextTime.isBefore(eveningUpperEdge)){
             timePeriod = "Evening";
         }
-        else if(x.after(calendarEvening.getTime()) && x.before(calendarNight.getTime())){
+        else if(contextTime.isBefore(nightUpperEdge)){
             timePeriod = "Night";
         }
         return timePeriod;
@@ -211,6 +184,8 @@ public class ActivityAdvisorAPI {
     // Gets address from latitude and longitude from TrueWay API
     public String reverseGeocode(double lat, double lng) throws Exception{
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://trueway-geocoding.p.rapidapi.com/ReverseGeocode?location=" + lat + "%2C" + lng + "&language=en"))
                 .header("x-rapidapi-host", "trueway-geocoding.p.rapidapi.com")
@@ -237,6 +212,8 @@ public class ActivityAdvisorAPI {
             }
         }
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
         Random rand = new Random();
         int randType=0, randResult;
@@ -455,6 +432,8 @@ public class ActivityAdvisorAPI {
             }
         }
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
         Random rand = new Random();
         int randType=0, randResult;
@@ -555,6 +534,8 @@ public class ActivityAdvisorAPI {
             }
         }
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
         Random rand = new Random();
         int randType=0, randResult;
@@ -615,6 +596,8 @@ public class ActivityAdvisorAPI {
             }
         }
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
         Random rand = new Random();
         int randType=0, randResult;
@@ -720,6 +703,8 @@ public class ActivityAdvisorAPI {
 
     public String getApiKey() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         Map<String, String> map = mapper.readValue(Paths.get(".secret/api_key.json").toFile(), Map.class);
         return map.get("api_key");
     }
