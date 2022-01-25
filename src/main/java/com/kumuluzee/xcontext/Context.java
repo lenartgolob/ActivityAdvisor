@@ -20,12 +20,9 @@ import java.time.LocalTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Context{
     private Location location;
-    private Integer ambientLight;
     private Integer steps;
     private Integer batteryPercentage;
-    private Integer ambientPressure;
     private Double temperature;
-    private Double relativeHumidity;
     @JsonDeserialize(using = LocalTimeDeserializer.class)
     @JsonSerialize(using = LocalTimeSerializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
@@ -33,10 +30,6 @@ public class Context{
 
     public Location getLocation() {
         return location;
-    }
-
-    public Integer getAmbientLight() {
-        return ambientLight;
     }
 
     public Integer getSteps() {
@@ -47,26 +40,14 @@ public class Context{
         return batteryPercentage;
     }
 
-    public Integer getAmbientPressure() {
-        return ambientPressure;
-    }
-
     public Double getTemperature() {
         return temperature;
-    }
-
-    public Double getRelativeHumidity() {
-        return relativeHumidity;
     }
 
     public LocalTime getTime() { return time; }
 
     public void setLocation(Location location) {
         this.location = location;
-    }
-
-    public void setAmbientLight(Integer ambientLight) {
-        this.ambientLight = ambientLight;
     }
 
     public void setSteps(Integer steps) {
@@ -77,16 +58,8 @@ public class Context{
         this.batteryPercentage = batteryPercentage;
     }
 
-    public void setAmbientPressure(Integer ambientPressure) {
-        this.ambientPressure = ambientPressure;
-    }
-
     public void setTemperature(Double temperature) {
         this.temperature = temperature;
-    }
-
-    public void setRelativeHumidity(Double relativeHumidity) {
-        this.relativeHumidity = relativeHumidity;
     }
 
     public void setTime(LocalTime time) { this.time = time; }

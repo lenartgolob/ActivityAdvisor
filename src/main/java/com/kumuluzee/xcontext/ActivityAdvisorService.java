@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.kumuluz.ee.configuration.utils.ConfigurationUtil;
 import com.kumuluzee.xcontext.APIResponses.ReverseGeocode;
 import com.kumuluzee.xcontext.APIResponses.TrueWayResponse;
 import org.json.JSONObject;
@@ -20,43 +21,52 @@ import java.util.*;
 
 
 @RequestScoped
-public class ActivityAdvisorAPI {
+public class ActivityAdvisorService {
 
     @Inject
     private XContext xContext;
 
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    private String apiKey = ConfigurationUtil.getInstance().get("kumuluzee.api-key").orElse(null);
+
+
+    public ActivityAdvisorService(){
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
+
     public ActivityResponse getActivity() throws Exception{
-        List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
         // Lokacija je
         if(xContext.getContext().getLocation() != null){
             // Korakov ni
             if(xContext.getContext().getSteps() == null){
                 // Čas je
                 if(xContext.getContext().getTime() != null){
-                    return new ActivityResponse(getActivityBasedOnTime());
+                    return getActivityBasedOnTime();
                 }
                 // Časa ni, temperatura je
                 else if(xContext.getContext().getTemperature() != null){
-                    return new ActivityResponse(getActivityBasedOnTemperature());
+                    return getActivityBasedOnTemperature();
                 } else {
-                    return new ActivityResponse(getActivityBasedOnLocation());
+                    return getActivityBasedOnLocation();
                 }
             }
             // Koraki so
             else {
                 // Korakov je veliko
                 if(xContext.getContext().getSteps() > 10000){
-                    return new ActivityResponse(getActivityStepsHigh());
+                    return getActivityStepsHigh();
                 } else { // Zanemarimo korake, saj niso ekstremi
                     // Čas je
                     if(xContext.getContext().getTime() != null){
-                        return new ActivityResponse(getActivityBasedOnTime());
+                        return getActivityBasedOnTime();
                     }
                     // Časa ni, temperatura je
                     else if(xContext.getContext().getTemperature() != null){
-                        return new ActivityResponse(getActivityBasedOnTemperature());
+                        return getActivityBasedOnTemperature();
                     } else {
-                        return new ActivityResponse(getActivityBasedOnLocation());
+                        return getActivityBasedOnLocation();
                     }
                 }
             }
@@ -67,27 +77,32 @@ public class ActivityAdvisorAPI {
             // Korakov ni
             if(xContext.getContext().getSteps() == null){
                 if(xContext.getContext().getTime() != null){
-                    return new ActivityResponse(getActivityWithoutLocation());
+                    return getActivityWithoutLocation();
                 }
             }
             // Koraki so
             else {
                 if(xContext.getContext().getSteps() > 10000){
-                    return new ActivityResponse("I see you've been very active today, so you deserve some relaxation. I recommend to finally watch that movie you downloaded, but never ended up watching it.");
+                    ActivityResponse activityResponse = new ActivityResponse();
+                    activityResponse.setMessage("I see you've been very active today, so you deserve some relaxation. I recommend to finally watch that movie you downloaded, but never ended up watching it.");
+                    return activityResponse;
                 } else {
-                    return new ActivityResponse(getActivityWithoutLocation());
+                    return getActivityWithoutLocation();
                 }
             }
 
         }
-        return new ActivityResponse("I couldn't find any activity for you.");
+        ActivityResponse activityResponse = new ActivityResponse();
+        activityResponse.setMessage("I couldn't find any activity for you.");
+        return activityResponse;
     }
 
-    public String getActivityWithoutLocation() throws Exception{
-        String timePeriod = timePeriod();
+    public ActivityResponse getActivityWithoutLocation() throws Exception{
+        ActivityResponse activityResponse = new ActivityResponse();
         String msg = "I couldn't find any activity for you.";
         // Če poznamo čas
         if(xContext.getContext().getTime() != null){
+            String timePeriod = timePeriod();
             if(xContext.getContext().getTemperature() != null){
                 if(xContext.getContext().getTemperature() > 10){
                     switch(timePeriod){
@@ -104,8 +119,10 @@ public class ActivityAdvisorAPI {
                             msg = "The weather is nice so today is the perfect day for stargazing!";
                             break;
                     }
-                    if(xContext.getContext().getBatteryPercentage()<=30){
-                        msg = msg + " And don't wonder off to far, because your battery is running low.";
+                    if(xContext.getContext().getBatteryPercentage() != null){
+                        if(xContext.getContext().getBatteryPercentage()<=30){
+                            msg = msg + " And don't wonder off to far, because your battery is running low.";
+                        }
                     }
                 } else {
                     switch(timePeriod){
@@ -121,6 +138,11 @@ public class ActivityAdvisorAPI {
                         case "Night":
                             msg = "You probably want to crawl under your blanket because of this cold weather. Well that is exactly what you should do, and don't forget to put on your favourite winter movie.";
                             break;
+                    }
+                    if(xContext.getContext().getBatteryPercentage() != null){
+                        if(xContext.getContext().getBatteryPercentage()<=30){
+                            msg = msg + " And don't wonder off to far, because your battery is running low.";
+                        }
                     }
                 }
             } else {
@@ -138,12 +160,15 @@ public class ActivityAdvisorAPI {
                         msg = "Take some time off and finally watch that movie you downloaded, but never ended up watching it.";
                         break;
                 }
-                if(xContext.getContext().getBatteryPercentage()<=30 && (timePeriod.equals("Noon") || timePeriod.equals("Evening"))){
-                    msg = msg + " And don't wonder off to far, because your battery is running low.";
+                if(xContext.getContext().getBatteryPercentage() != null){
+                    if(xContext.getContext().getBatteryPercentage()<=30){
+                        msg = msg + " And don't wonder off to far, because your battery is running low.";
+                    }
                 }
             }
         }
-        return msg;
+        activityResponse.setMessage(msg);
+        return activityResponse;
     }
 
     public String timePeriod() throws Exception{
@@ -174,7 +199,7 @@ public class ActivityAdvisorAPI {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://trueway-places.p.rapidapi.com/FindPlacesNearby?location=" + lat + "%2C" + lng + "&type=" + type + "&radius=" + radius + "&language=en"))
                 .header("x-rapidapi-host", "trueway-places.p.rapidapi.com")
-                .header("x-rapidapi-key", getApiKey())
+                .header("x-rapidapi-key", apiKey)
                 .method("GET", HttpRequest.BodyPublishers.noBody())
                 .build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
@@ -183,13 +208,10 @@ public class ActivityAdvisorAPI {
 
     // Gets address from latitude and longitude from TrueWay API
     public String reverseGeocode(double lat, double lng) throws Exception{
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://trueway-geocoding.p.rapidapi.com/ReverseGeocode?location=" + lat + "%2C" + lng + "&language=en"))
                 .header("x-rapidapi-host", "trueway-geocoding.p.rapidapi.com")
-                .header("x-rapidapi-key", getApiKey())
+                .header("x-rapidapi-key", apiKey)
                 .method("GET", HttpRequest.BodyPublishers.noBody())
                 .build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
@@ -199,7 +221,9 @@ public class ActivityAdvisorAPI {
     }
 
     // Prilagojen tudi na baterijo in temperaturo
-    public String getActivityBasedOnTime() throws Exception{
+    public ActivityResponse getActivityBasedOnTime() throws Exception{
+        ActivityResponse activityResponse = new ActivityResponse();
+        Location location = new Location();
         int radius;
         // Changes radius of results based on battery %
         if(xContext.getContext().getBatteryPercentage() == null){
@@ -211,9 +235,6 @@ public class ActivityAdvisorAPI {
                 radius = 2000;
             }
         }
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
         Random rand = new Random();
         int randType=0, randResult;
@@ -246,6 +267,10 @@ public class ActivityAdvisorAPI {
             while(morningActivities.size()>0){
                 randType = rand.nextInt(morningActivities.size());
                 JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), morningActivities.get(randType), radius));
+                if(!json.has("results")){
+                    morningActivities.remove(randType);
+                    continue;
+                }
                 destinations = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<TrueWayResponse>>(){});
                 if(destinations.size()>0){
                     break;
@@ -280,9 +305,17 @@ public class ActivityAdvisorAPI {
                         msg = "Let me guess, you could use a day off. Relax and visit a local spa " + activityDestination.getName() + ". It's located on " + address + ".";
                         break;
                 }
-                return msg;
+                activityResponse.setMessage(msg);
+                activityResponse.setType(morningActivities.get(randType));
+                activityResponse.setAddress(address);
+                activityResponse.setName(activityDestination.getName());
+                location.setLatitude(activityDestination.getLocation().getLat());
+                location.setLongitude(activityDestination.getLocation().getLng());
+                activityResponse.setLocation(location);
+                return activityResponse;
             } else {
-                return "I couldn't find any morning activities for you, try again later.";
+                activityResponse.setMessage("I couldn't find any morning activities for you, try again later.");
+                return activityResponse;
             }
         }
         else if(timePeriod.equals("Noon")){
@@ -295,6 +328,10 @@ public class ActivityAdvisorAPI {
             while(noonActivities.size()>0){
                 randType = rand.nextInt(noonActivities.size());
                 JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), noonActivities.get(randType), radius));
+                if(!json.has("results")){
+                    noonActivities.remove(randType);
+                    continue;
+                }
                 destinations = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<TrueWayResponse>>(){});
                 if(destinations.size()>0){
                     break;
@@ -329,9 +366,17 @@ public class ActivityAdvisorAPI {
                         msg = "There's nothing wrong with broadening your horizons so you should visit museum " + activityDestination.getName() + ". It's located on " + address + ".";
                         break;
                 }
-                return msg;
+                activityResponse.setMessage(msg);
+                activityResponse.setAddress(address);
+                activityResponse.setType(noonActivities.get(randType));
+                activityResponse.setName(activityDestination.getName());
+                location.setLatitude(activityDestination.getLocation().getLat());
+                location.setLongitude(activityDestination.getLocation().getLng());
+                activityResponse.setLocation(location);
+                return activityResponse;
             } else {
-                return "I couldn't find any noon activities for you, try again later.";
+                activityResponse.setMessage("I couldn't find any morning activities for you, try again later.");
+                return activityResponse;
             }
 
         }
@@ -344,6 +389,10 @@ public class ActivityAdvisorAPI {
             while(eveningActivities.size()>0){
                 randType = rand.nextInt(eveningActivities.size());
                 JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), eveningActivities.get(randType), radius));
+                if(!json.has("results")){
+                    eveningActivities.remove(randType);
+                    continue;
+                }
                 destinations = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<TrueWayResponse>>(){});
                 if(destinations.size()>0){
                     break;
@@ -375,9 +424,17 @@ public class ActivityAdvisorAPI {
                         msg = "Stop sitting around and visit your local gym " + activityDestination.getName() + ". It's located on " + address  + ".";
                         break;
                 }
-                return msg;
+                activityResponse.setMessage(msg);
+                activityResponse.setAddress(address);
+                activityResponse.setType(eveningActivities.get(randType));
+                activityResponse.setName(activityDestination.getName());
+                location.setLatitude(activityDestination.getLocation().getLat());
+                location.setLongitude(activityDestination.getLocation().getLng());
+                activityResponse.setLocation(location);
+                return activityResponse;
             } else {
-                return "I couldn't find any evening activities for you, try again later.";
+                activityResponse.setMessage("I couldn't find any morning activities for you, try again later.");
+                return activityResponse;
             }
         }
         else if(timePeriod.equals("Night")){
@@ -387,12 +444,11 @@ public class ActivityAdvisorAPI {
             while(nightActivities.size()>0){
                 randType = rand.nextInt(nightActivities.size());
                 JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), nightActivities.get(randType), radius));
-                destinations = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<TrueWayResponse>>(){});
-                if(destinations.size()>0){
-                    break;
-                } else {
+                if(!json.has("results")){
                     nightActivities.remove(randType);
+                    continue;
                 }
+                destinations = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<TrueWayResponse>>(){});
             }
             if(nightActivities.size()>0){
                 randResult = rand.nextInt(destinations.size());
@@ -412,15 +468,26 @@ public class ActivityAdvisorAPI {
                         msg = "If you are a gambler you should visit your local casino " + activityDestination.getName() + ". It's located on " + address + ".";
                         break;
                 }
-                return msg;
+                activityResponse.setMessage(msg);
+                activityResponse.setAddress(address);
+                activityResponse.setType(nightActivities.get(randType));
+                activityResponse.setName(activityDestination.getName());
+                location.setLatitude(activityDestination.getLocation().getLat());
+                location.setLongitude(activityDestination.getLocation().getLng());
+                activityResponse.setLocation(location);
+                return activityResponse;
             } else {
-                return "I couldn't find any night life activities for you, try again later.";
+                activityResponse.setMessage("I couldn't find any morning activities for you, try again later.");
+                return activityResponse;
             }
         }
-        return "I couldn't find any activities for you, try again later.";
+        activityResponse.setMessage("I couldn't find any morning activities for you, try again later.");
+        return activityResponse;
     }
 
-    public String getActivityBasedOnLocation() throws Exception{
+    public ActivityResponse getActivityBasedOnLocation() throws Exception{
+        ActivityResponse activityResponse = new ActivityResponse();
+        Location location = new Location();
         int radius;
         if(xContext.getContext().getBatteryPercentage() == null){
             radius = 10000;
@@ -431,9 +498,6 @@ public class ActivityAdvisorAPI {
                 radius = 2000;
             }
         }
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
         Random rand = new Random();
         int randType=0, randResult;
@@ -454,7 +518,7 @@ public class ActivityAdvisorAPI {
         while(activities.size()>0){
             randType = rand.nextInt(activities.size());
             JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activities.get(randType), radius));
-            if(json == null){
+            if(!json.has("results")){
                 activities.remove(randType);
                 continue;
             }
@@ -516,13 +580,22 @@ public class ActivityAdvisorAPI {
                     msg = "Go on an adventure and visit a tourist attraction " + activityDestination.getName() + ". It's located on " + address + ".";
                     break;
             }
-            return msg;
+            activityResponse.setMessage(msg);
+            activityResponse.setAddress(address);
+            activityResponse.setType(activities.get(randType));
+            activityResponse.setName(activityDestination.getName());
+            location.setLatitude(activityDestination.getLocation().getLat());
+            location.setLongitude(activityDestination.getLocation().getLng());
+            activityResponse.setLocation(location);
         } else {
-            return "I couldn't find any activities near you.";
+            activityResponse.setMessage("I couldn't find any activities near you.");
         }
+        return activityResponse;
     }
 
-    public String getActivityStepsHigh() throws Exception {
+    public ActivityResponse getActivityStepsHigh() throws Exception {
+        ActivityResponse activityResponse = new ActivityResponse();
+        Location location = new Location();
         int radius;
         if(xContext.getContext().getBatteryPercentage() == null){
             radius = 10000;
@@ -533,9 +606,6 @@ public class ActivityAdvisorAPI {
                 radius = 2000;
             }
         }
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
         Random rand = new Random();
         int randType=0, randResult;
@@ -546,7 +616,7 @@ public class ActivityAdvisorAPI {
         while(activities.size()>0){
             randType = rand.nextInt(activities.size());
             JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activities.get(randType), radius));
-            if(json == null){
+            if(!json.has("results")){
                 activities.remove(randType);
                 continue;
             }
@@ -578,13 +648,22 @@ public class ActivityAdvisorAPI {
                     msg = "You deserve some relaxation after the day you just had! Visit your local spa " + activityDestination.getName() + ". It's located on " + address + ".";
                     break;
             }
-            return msg;
+            activityResponse.setMessage(msg);
+            activityResponse.setAddress(address);
+            activityResponse.setType(activities.get(randType));
+            activityResponse.setName(activityDestination.getName());
+            location.setLatitude(activityDestination.getLocation().getLat());
+            location.setLongitude(activityDestination.getLocation().getLng());
+            activityResponse.setLocation(location);
         } else {
-            return "I couldn't find any relaxing activities near you.";
+            activityResponse.setMessage("I couldn't find any relaxing activities near you.");
         }
+        return activityResponse;
     }
 
-    public String getActivityBasedOnTemperature() throws Exception {
+    public ActivityResponse getActivityBasedOnTemperature() throws Exception {
+        ActivityResponse activityResponse = new ActivityResponse();
+        Location location = new Location();
         int radius;
         if(xContext.getContext().getBatteryPercentage() == null){
             radius = 10000;
@@ -595,9 +674,6 @@ public class ActivityAdvisorAPI {
                 radius = 2000;
             }
         }
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
         Random rand = new Random();
         int randType=0, randResult;
@@ -608,6 +684,10 @@ public class ActivityAdvisorAPI {
             while(activitiesHot.size()>0){
                 randType = rand.nextInt(activitiesHot.size());
                 JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activitiesHot.get(randType), radius));
+                if(!json.has("results")){
+                    activitiesHot.remove(randType);
+                    continue;
+                }
                 destinations = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<TrueWayResponse>>(){});
                 if(destinations.size()>0){
                     break;
@@ -633,9 +713,15 @@ public class ActivityAdvisorAPI {
                         msg = "Since the weather is so nice outside it would be a shame to sit inside all day, so start your day with an adventure and visit a tourist attraction  " + activityDestination.getName() + ". It's located on " + address + ".";
                         break;
                 }
-                return msg;
+                activityResponse.setMessage(msg);
+                activityResponse.setAddress(address);
+                activityResponse.setType(activitiesHot.get(randType));
+                activityResponse.setName(activityDestination.getName());
+                location.setLatitude(activityDestination.getLocation().getLat());
+                location.setLongitude(activityDestination.getLocation().getLng());
+                activityResponse.setLocation(location);
             } else {
-                return "I couldn't find any outside activities for you.";
+                activityResponse.setMessage("I couldn't find any outside activities for you.");
             }
         } else {
             ArrayList<String> activitiesCold = new ArrayList<String>();
@@ -650,6 +736,10 @@ public class ActivityAdvisorAPI {
             while(activitiesCold.size()>0){
                 randType = rand.nextInt(activitiesCold.size());
                 JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activitiesCold.get(randType), radius));
+                if(!json.has("results")){
+                    activitiesCold.remove(randType);
+                    continue;
+                }
                 destinations = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<TrueWayResponse>>(){});
                 if(destinations.size()>0){
                     break;
@@ -693,19 +783,17 @@ public class ActivityAdvisorAPI {
                         msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local spa " + activityDestination.getName() + ". It's located on " + address + ".";
                         break;
                 }
-                return msg;
+                activityResponse.setMessage(msg);
+                activityResponse.setAddress(address);
+                activityResponse.setType(activitiesCold.get(randType));
+                activityResponse.setName(activityDestination.getName());
+                location.setLatitude(activityDestination.getLocation().getLat());
+                location.setLongitude(activityDestination.getLocation().getLng());
+                activityResponse.setLocation(location);
             } else {
-                return "I couldn't find any night life activities for you, try again later.";
+                activityResponse.setMessage("I couldn't find any night life activities for you, try again later.");
             }
-
         }
-    }
-
-    public String getApiKey() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        Map<String, String> map = mapper.readValue(Paths.get(".secret/api_key.json").toFile(), Map.class);
-        return map.get("api_key");
+        return activityResponse;
     }
 }

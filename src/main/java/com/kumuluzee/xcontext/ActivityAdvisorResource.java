@@ -6,10 +6,6 @@ import javax.ws.rs.core.Response;
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 
 @RequestScoped
 @Consumes(MediaType.APPLICATION_JSON)
@@ -21,7 +17,7 @@ public class ActivityAdvisorResource {
     private XContext xContext;
 
     @Inject
-    private ActivityAdvisorAPI advisorBean;
+    private ActivityAdvisorService advisorBean;
 
     @GET
     public Response getXContext() throws Exception {

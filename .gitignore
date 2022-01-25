@@ -34,4 +34,4 @@ Desktop.ini
 $RECYCLE.BIN/
 
 #Secret Folder
-.secret/
+config.yaml
