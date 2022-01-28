@@ -3,6 +3,7 @@ com\kumuluzee\xcontext\ActivityAdvisorService$4.class
 com\kumuluzee\xcontext\ActivityAdvisorService$2.class
 com\kumuluzee\xcontext\ActivityAdvisorService$8.class
 com\kumuluzee\xcontext\ActivityResponse.class
+com\kumuluzee\xcontext\WeatherAPI.class
 com\kumuluzee\xcontext\XContext.class
 com\kumuluzee\xcontext\APIResponses\ReverseGeocode.class
 com\kumuluzee\xcontext\ActivityAdvisorApplication.class
@@ -15,6 +16,7 @@ com\kumuluzee\xcontext\ActivityAdvisorService.class
 com\kumuluzee\xcontext\ActivityAdvisorService$6.class
 com\kumuluzee\xcontext\ActivityAdvisorService$5.class
 com\kumuluzee\xcontext\ActivityAdvisorResource.class
+com\kumuluzee\xcontext\TrueWayClient$1.class
 com\kumuluzee\xcontext\APIResponses\TrueWayLocation.class
 com\kumuluzee\xcontext\Location.class
-com\kumuluzee\xcontext\ActivityAdvisorService$9.class
+com\kumuluzee\xcontext\TrueWayClient.class

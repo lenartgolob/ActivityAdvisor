@@ -26,10 +26,13 @@ public class ActivityAdvisorService {
     @Inject
     private XContext xContext;
 
+    @Inject
+    private TrueWayClient trueWayBean;
+
+    @Inject
+    private WeatherAPI weatherBean;
+
     private ObjectMapper objectMapper = new ObjectMapper();
-
-    private String apiKey = ConfigurationUtil.getInstance().get("kumuluzee.api-key").orElse(null);
-
 
     public ActivityAdvisorService(){
         objectMapper.registerModule(new JavaTimeModule());
@@ -38,7 +41,10 @@ public class ActivityAdvisorService {
 
     public ActivityResponse getActivity() throws Exception{
         // Lokacija je
-        if(xContext.getContext().getLocation() != null){
+        if(xContext.getContext().getLocation().getLatitude() != null && xContext.getContext().getLocation().getLongitude() != null){
+            // Gets temperature from WeatherAPI with coordinates
+            Double temp = weatherBean.getTemp(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude());
+            xContext.getContext().setTemperature(temp);
             // Korakov ni
             if(xContext.getContext().getSteps() == null){
                 // Čas je
@@ -171,55 +177,6 @@ public class ActivityAdvisorService {
         return activityResponse;
     }
 
-    public String timePeriod() throws Exception{
-        LocalTime morningUpperEdge = LocalTime.parse("10:00");
-        LocalTime noonUpperEdge = LocalTime.parse("15:00");
-        LocalTime eveningUpperEdge = LocalTime.parse("20:00");
-        LocalTime nightUpperEdge = LocalTime.parse("23:59");
-        LocalTime contextTime = xContext.getContext().getTime();
-
-        String timePeriod = "";
-        if (contextTime.isBefore(morningUpperEdge)) {
-            timePeriod = "Morning";
-        }
-        else if(contextTime.isBefore(noonUpperEdge)){
-            timePeriod = "Noon";
-        }
-        else if(contextTime.isBefore(eveningUpperEdge)){
-            timePeriod = "Evening";
-        }
-        else if(contextTime.isBefore(nightUpperEdge)){
-            timePeriod = "Night";
-        }
-        return timePeriod;
-    }
-
-    // Gets a destination from TrueWay API
-    public String getTrueWay(double lat, double lng, String type, int radius) throws Exception{
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://trueway-places.p.rapidapi.com/FindPlacesNearby?location=" + lat + "%2C" + lng + "&type=" + type + "&radius=" + radius + "&language=en"))
-                .header("x-rapidapi-host", "trueway-places.p.rapidapi.com")
-                .header("x-rapidapi-key", apiKey)
-                .method("GET", HttpRequest.BodyPublishers.noBody())
-                .build();
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
-    }
-
-    // Gets address from latitude and longitude from TrueWay API
-    public String reverseGeocode(double lat, double lng) throws Exception{
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://trueway-geocoding.p.rapidapi.com/ReverseGeocode?location=" + lat + "%2C" + lng + "&language=en"))
-                .header("x-rapidapi-host", "trueway-geocoding.p.rapidapi.com")
-                .header("x-rapidapi-key", apiKey)
-                .method("GET", HttpRequest.BodyPublishers.noBody())
-                .build();
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-        JSONObject json = new JSONObject(response.body());
-        List<ReverseGeocode> addresses = objectMapper.readValue(json.getJSONArray("results").toString(), new TypeReference<List<ReverseGeocode>>(){});
-        return addresses.get(0).getAddress();
-    }
-
     // Prilagojen tudi na baterijo in temperaturo
     public ActivityResponse getActivityBasedOnTime() throws Exception{
         ActivityResponse activityResponse = new ActivityResponse();
@@ -266,7 +223,7 @@ public class ActivityAdvisorService {
             morningActivities.add("spa");
             while(morningActivities.size()>0){
                 randType = rand.nextInt(morningActivities.size());
-                JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), morningActivities.get(randType), radius));
+                JSONObject json = new JSONObject(trueWayBean.getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), morningActivities.get(randType), radius));
                 if(!json.has("results")){
                     morningActivities.remove(randType);
                     continue;
@@ -283,7 +240,7 @@ public class ActivityAdvisorService {
                 TrueWayResponse activityDestination = destinations.get(randResult);
                 String address;
                 if(activityDestination.getAddress() == null){
-                    address = reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
+                    address = trueWayBean.reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
                 } else {
                     address = activityDestination.getAddress();
                 }
@@ -327,7 +284,7 @@ public class ActivityAdvisorService {
             noonActivities.add("museum");
             while(noonActivities.size()>0){
                 randType = rand.nextInt(noonActivities.size());
-                JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), noonActivities.get(randType), radius));
+                JSONObject json = new JSONObject(trueWayBean.getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), noonActivities.get(randType), radius));
                 if(!json.has("results")){
                     noonActivities.remove(randType);
                     continue;
@@ -344,7 +301,7 @@ public class ActivityAdvisorService {
                 TrueWayResponse activityDestination = destinations.get(randResult);
                 String address;
                 if(activityDestination.getAddress() == null){
-                    address = reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
+                    address = trueWayBean.reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
                 } else {
                     address = activityDestination.getAddress();
                 }
@@ -388,7 +345,7 @@ public class ActivityAdvisorService {
             eveningActivities.add("gym");
             while(eveningActivities.size()>0){
                 randType = rand.nextInt(eveningActivities.size());
-                JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), eveningActivities.get(randType), radius));
+                JSONObject json = new JSONObject(trueWayBean.getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), eveningActivities.get(randType), radius));
                 if(!json.has("results")){
                     eveningActivities.remove(randType);
                     continue;
@@ -405,7 +362,7 @@ public class ActivityAdvisorService {
                 TrueWayResponse activityDestination = destinations.get(randResult);
                 String address;
                 if(activityDestination.getAddress() == null){
-                    address = reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
+                    address = trueWayBean.reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
                 } else {
                     address = activityDestination.getAddress();
                 }
@@ -443,7 +400,7 @@ public class ActivityAdvisorService {
             nightActivities.add("casino");
             while(nightActivities.size()>0){
                 randType = rand.nextInt(nightActivities.size());
-                JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), nightActivities.get(randType), radius));
+                JSONObject json = new JSONObject(trueWayBean.getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), nightActivities.get(randType), radius));
                 if(!json.has("results")){
                     nightActivities.remove(randType);
                     continue;
@@ -455,7 +412,7 @@ public class ActivityAdvisorService {
                 TrueWayResponse activityDestination = destinations.get(randResult);
                 String address;
                 if(activityDestination.getAddress() == null){
-                    address = reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
+                    address = trueWayBean.reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
                 } else {
                     address = activityDestination.getAddress();
                 }
@@ -517,7 +474,7 @@ public class ActivityAdvisorService {
         activities.add("tourist_attraction");
         while(activities.size()>0){
             randType = rand.nextInt(activities.size());
-            JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activities.get(randType), radius));
+            JSONObject json = new JSONObject(trueWayBean.getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activities.get(randType), radius));
             if(!json.has("results")){
                 activities.remove(randType);
                 continue;
@@ -534,7 +491,7 @@ public class ActivityAdvisorService {
             TrueWayResponse activityDestination = destinations.get(randResult);
             String address;
             if(activityDestination.getAddress() == null){
-                address = reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
+                address = trueWayBean.reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
             } else {
                 address = activityDestination.getAddress();
             }
@@ -615,7 +572,7 @@ public class ActivityAdvisorService {
         activities.add("spa");
         while(activities.size()>0){
             randType = rand.nextInt(activities.size());
-            JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activities.get(randType), radius));
+            JSONObject json = new JSONObject(trueWayBean.getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activities.get(randType), radius));
             if(!json.has("results")){
                 activities.remove(randType);
                 continue;
@@ -632,7 +589,7 @@ public class ActivityAdvisorService {
             TrueWayResponse activityDestination = destinations.get(randResult);
             String address;
             if(activityDestination.getAddress() == null){
-                address = reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
+                address = trueWayBean.reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
             } else {
                 address = activityDestination.getAddress();
             }
@@ -683,7 +640,7 @@ public class ActivityAdvisorService {
             activitiesHot.add("tourist_attraction");
             while(activitiesHot.size()>0){
                 randType = rand.nextInt(activitiesHot.size());
-                JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activitiesHot.get(randType), radius));
+                JSONObject json = new JSONObject(trueWayBean.getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activitiesHot.get(randType), radius));
                 if(!json.has("results")){
                     activitiesHot.remove(randType);
                     continue;
@@ -700,7 +657,7 @@ public class ActivityAdvisorService {
                 TrueWayResponse activityDestination = destinations.get(randResult);
                 String address;
                 if(activityDestination.getAddress() == null){
-                    address = reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
+                    address = trueWayBean.reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
                 } else {
                     address = activityDestination.getAddress();
                 }
@@ -735,7 +692,7 @@ public class ActivityAdvisorService {
             activitiesCold.add("spa");
             while(activitiesCold.size()>0){
                 randType = rand.nextInt(activitiesCold.size());
-                JSONObject json = new JSONObject(getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activitiesCold.get(randType), radius));
+                JSONObject json = new JSONObject(trueWayBean.getTrueWay(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude(), activitiesCold.get(randType), radius));
                 if(!json.has("results")){
                     activitiesCold.remove(randType);
                     continue;
@@ -752,7 +709,7 @@ public class ActivityAdvisorService {
                 TrueWayResponse activityDestination = destinations.get(randResult);
                 String address;
                 if(activityDestination.getAddress() == null){
-                    address = reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
+                    address = trueWayBean.reverseGeocode(activityDestination.getLocation().getLat(), activityDestination.getLocation().getLng());
                 } else {
                     address = activityDestination.getAddress();
                 }
@@ -795,5 +752,28 @@ public class ActivityAdvisorService {
             }
         }
         return activityResponse;
+    }
+
+    public String timePeriod() throws Exception{
+        LocalTime morningUpperEdge = LocalTime.parse("10:00");
+        LocalTime noonUpperEdge = LocalTime.parse("15:00");
+        LocalTime eveningUpperEdge = LocalTime.parse("20:00");
+        LocalTime nightUpperEdge = LocalTime.parse("23:59");
+        LocalTime contextTime = xContext.getContext().getTime();
+
+        String timePeriod = "";
+        if (contextTime.isBefore(morningUpperEdge)) {
+            timePeriod = "Morning";
+        }
+        else if(contextTime.isBefore(noonUpperEdge)){
+            timePeriod = "Noon";
+        }
+        else if(contextTime.isBefore(eveningUpperEdge)){
+            timePeriod = "Evening";
+        }
+        else if(contextTime.isBefore(nightUpperEdge)){
+            timePeriod = "Night";
+        }
+        return timePeriod;
     }
 }
