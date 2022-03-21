@@ -41,10 +41,12 @@ public class ActivityAdvisorService {
 
     public ActivityResponse getActivity() throws Exception{
         // Lokacija je
-        if(xContext.getContext().getLocation().getLatitude() != null && xContext.getContext().getLocation().getLongitude() != null){
-            // Gets temperature from WeatherAPI with coordinates
-            Double temp = weatherBean.getTemp(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude());
-            xContext.getContext().setTemperature(temp);
+        if(xContext.getContext().getLocation() != null){
+            if(xContext.getContext().getTemperature() == null){
+                // Gets temperature from WeatherAPI with coordinates
+                Double temp = weatherBean.getTemp(xContext.getContext().getLocation().getLatitude(), xContext.getContext().getLocation().getLongitude());
+                xContext.getContext().setTemperature(temp);
+            }
             // Korakov ni
             if(xContext.getContext().getSteps() == null){
                 // Čas je
@@ -247,19 +249,19 @@ public class ActivityAdvisorService {
                 String msg = "";
                 switch(morningActivities.get(randType)){
                     case "tourist_attraction":
-                        msg = "Start your day with an adventure and visit a tourist attraction " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Start your day with an adventure and visit a tourist attraction " + activityDestination.getName() + ".";
                         break;
                     case "cafe":
-                        msg = "Nothing like a cup of coffe in the morning, so visit café " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Nothing like a cup of coffe in the morning, so visit café " + activityDestination.getName() + ".";
                         break;
                     case "amusement_park":
-                        msg = "Start your day with an adventure and visit an amusement park " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Start your day with an adventure and visit an amusement park " + activityDestination.getName() + ".";
                         break;
                     case "gym":
-                        msg = "Stop sitting around and visit your local gym " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Stop sitting around and visit your local gym " + activityDestination.getName() + ".";
                         break;
                     case "spa":
-                        msg = "Let me guess, you could use a day off. Relax and visit a local spa " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Let me guess, you could use a day off. Relax and visit a local spa " + activityDestination.getName() + ".";
                         break;
                 }
                 activityResponse.setMessage(msg);
@@ -308,19 +310,19 @@ public class ActivityAdvisorService {
                 String msg = "";
                 switch(noonActivities.get(randType)){
                     case "restaurant":
-                        msg = "I know you like good food, so visit restaurant " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "I know you like good food, so visit restaurant " + activityDestination.getName() + ".";
                         break;
                     case "aquarium":
-                        msg = "Who doesn't want to see a shark? Visit your local aquarium " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Who doesn't want to see a shark? Visit your local aquarium " + activityDestination.getName() + ".";
                         break;
                     case "art_gallery":
-                        msg = "Go to an art-gallery and admire some artistic masterpieces in " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Go to an art-gallery and admire some artistic masterpieces in " + activityDestination.getName() + ".";
                         break;
                     case "gym":
-                        msg = "Stop sitting around and visit your local gym " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Stop sitting around and visit your local gym " + activityDestination.getName() + ".";
                         break;
                     case "museum":
-                        msg = "There's nothing wrong with broadening your horizons so you should visit museum " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "There's nothing wrong with broadening your horizons so you should visit museum " + activityDestination.getName() + ".";
                         break;
                 }
                 activityResponse.setMessage(msg);
@@ -332,7 +334,7 @@ public class ActivityAdvisorService {
                 activityResponse.setLocation(location);
                 return activityResponse;
             } else {
-                activityResponse.setMessage("I couldn't find any morning activities for you, try again later.");
+                activityResponse.setMessage("I couldn't find any noon activities for you, try again later.");
                 return activityResponse;
             }
 
@@ -369,16 +371,16 @@ public class ActivityAdvisorService {
                 String msg = "";
                 switch(eveningActivities.get(randType)){
                     case "restaurant":
-                        msg = "I know you like good food, so visit restaurant " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "I know you like good food, so visit restaurant " + activityDestination.getName() + ".";
                         break;
                     case "bowling":
-                        msg = "I bet you haven't bowled in quite some time! You are missing out so go on and head to your local bowling alley " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "I bet you haven't bowled in quite some time! You are missing out so go on and head to your local bowling alley " + activityDestination.getName() + ".";
                         break;
                     case "cinema":
-                        msg = "You had a long and exhausting day and want to relax? Can't really beat a good movie in your local cinema " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "You had a long and exhausting day and want to relax? Can't really beat a good movie in your local cinema " + activityDestination.getName() + ".";
                         break;
                     case "gym":
-                        msg = "Stop sitting around and visit your local gym " + activityDestination.getName() + ". It's located on " + address  + ".";
+                        msg = "Stop sitting around and visit your local gym " + activityDestination.getName() + ".";
                         break;
                 }
                 activityResponse.setMessage(msg);
@@ -390,7 +392,7 @@ public class ActivityAdvisorService {
                 activityResponse.setLocation(location);
                 return activityResponse;
             } else {
-                activityResponse.setMessage("I couldn't find any morning activities for you, try again later.");
+                activityResponse.setMessage("I couldn't find any evening activities for you, try again later.");
                 return activityResponse;
             }
         }
@@ -419,10 +421,10 @@ public class ActivityAdvisorService {
                 String msg = "";
                 switch(nightActivities.get(randType)){
                     case "night_club":
-                        msg = "You want to blow of some steam? Visit a night club " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "You want to blow of some steam? Visit a night club " + activityDestination.getName() + ".";
                         break;
                     case "casino":
-                        msg = "If you are a gambler you should visit your local casino " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "If you are a gambler you should visit your local casino " + activityDestination.getName() + ".";
                         break;
                 }
                 activityResponse.setMessage(msg);
@@ -434,11 +436,11 @@ public class ActivityAdvisorService {
                 activityResponse.setLocation(location);
                 return activityResponse;
             } else {
-                activityResponse.setMessage("I couldn't find any morning activities for you, try again later.");
+                activityResponse.setMessage("I couldn't find any night activities for you, try again later.");
                 return activityResponse;
             }
         }
-        activityResponse.setMessage("I couldn't find any morning activities for you, try again later.");
+        activityResponse.setMessage("I couldn't find any night activities for you, try again later.");
         return activityResponse;
     }
 
@@ -498,43 +500,43 @@ public class ActivityAdvisorService {
             String msg = "";
             switch(activities.get(randType)){
                 case "amusement_park":
-                    msg = "Go on an adventure and visit an amusement park " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "Go on an adventure and visit an amusement park " + activityDestination.getName() + ".";
                     break;
                 case "aquarium":
-                    msg = "Who doesn't want to see a shark? Visit your local aquarium " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "Who doesn't want to see a shark? Visit your local aquarium " + activityDestination.getName() + ".";
                     break;
                 case "art_gallery":
-                    msg = "Go to an art-gallery and admire some artistic masterpieces in " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "Go to an art-gallery and admire some artistic masterpieces in " + activityDestination.getName() + ".";
                     break;
                 case "bowling":
-                    msg = "I bet you haven't bowled in quite some time! You are missing out so go on and head to your local bowling alley " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "I bet you haven't bowled in quite some time! You are missing out so go on and head to your local bowling alley " + activityDestination.getName() + ".";
                     break;
                 case "cafe":
-                    msg = "Nothing like a cup of coffe and a chat with your friends, so visit café " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "Nothing like a cup of coffe and a chat with your friends, so visit café " + activityDestination.getName() + ".";
                     break;
                 case "casino":
-                    msg = "If you are a gambler you should visit your local casino " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "If you are a gambler you should visit your local casino " + activityDestination.getName() + ".";
                     break;
                 case "cinema":
-                    msg = "You had a long and exhausting day and want to relax? Can't really beat a good movie in your local cinema " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "You had a long and exhausting day and want to relax? Can't really beat a good movie in your local cinema " + activityDestination.getName() + ".";
                     break;
                 case "gym":
-                    msg = "Stop sitting around and visit your local gym " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "Stop sitting around and visit your local gym " + activityDestination.getName() + ".";
                     break;
                 case "museum":
-                    msg = "There's nothing wrong with broadening your horizons so you should visit museum " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "There's nothing wrong with broadening your horizons so you should visit museum " + activityDestination.getName() + ".";
                     break;
                 case "night_club":
-                    msg = "You want to blow of some steam? Visit a night club " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "You want to blow of some steam? Visit a night club " + activityDestination.getName() + ".";
                     break;
                 case "restaurant":
-                    msg = "I know you like good food, so visit restaurant " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "I know you like good food, so visit restaurant " + activityDestination.getName() + ".";
                     break;
                 case "spa":
-                    msg = "Let me guess, you could use a day off. Relax and visit a local spa " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "Let me guess, you could use a day off. Relax and visit a local spa " + activityDestination.getName() + ".";
                     break;
                 case "tourist_attraction":
-                    msg = "Go on an adventure and visit a tourist attraction " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "Go on an adventure and visit a tourist attraction " + activityDestination.getName() + ".";
                     break;
             }
             activityResponse.setMessage(msg);
@@ -596,13 +598,13 @@ public class ActivityAdvisorService {
             String msg = "";
             switch(activities.get(randType)){
                 case "cinema":
-                    msg = "I see you've been very active today, so you deserve some off-time. Visit your local cinema " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "I see you've been very active today, so you deserve some off-time. Visit your local cinema " + activityDestination.getName() + ".";
                     break;
                 case "restaurant":
-                    msg = "I see you've been very active today, so I bet you wouldn't say no to a good meal in " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "I see you've been very active today, so I bet you wouldn't say no to a good meal in " + activityDestination.getName() + ".";
                     break;
                 case "spa":
-                    msg = "You deserve some relaxation after the day you just had! Visit your local spa " + activityDestination.getName() + ". It's located on " + address + ".";
+                    msg = "You deserve some relaxation after the day you just had! Visit your local spa " + activityDestination.getName() + ".";
                     break;
             }
             activityResponse.setMessage(msg);
@@ -664,10 +666,10 @@ public class ActivityAdvisorService {
                 String msg = "";
                 switch(activitiesHot.get(randType)){
                     case "amusement_park":
-                        msg = "Since the weather is so nice outside it would be a shame to sit inside all day, so start your day with an adventure and visit an amusement park  " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Since the weather is so nice outside it would be a shame to sit inside all day, so start your day with an adventure and visit an amusement park  " + activityDestination.getName() + ".";
                         break;
                     case "tourist_attraction":
-                        msg = "Since the weather is so nice outside it would be a shame to sit inside all day, so start your day with an adventure and visit a tourist attraction  " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Since the weather is so nice outside it would be a shame to sit inside all day, so start your day with an adventure and visit a tourist attraction  " + activityDestination.getName() + ".";
                         break;
                 }
                 activityResponse.setMessage(msg);
@@ -716,28 +718,28 @@ public class ActivityAdvisorService {
                 String msg = "";
                 switch(activitiesCold.get(randType)){
                     case "aquarium":
-                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local aquarium " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local aquarium " + activityDestination.getName() + ".";
                         break;
                     case "art_gallery":
-                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local art gallery " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local art gallery " + activityDestination.getName() + ".";
                         break;
                     case "bowling":
-                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local bowling alley " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local bowling alley " + activityDestination.getName() + ".";
                         break;
                     case "cafe":
-                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local café " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local café " + activityDestination.getName() + ".";
                         break;
                     case "gym":
-                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local gym " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local gym " + activityDestination.getName() + ".";
                         break;
                     case "museum":
-                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local museum " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local museum " + activityDestination.getName() + ".";
                         break;
                     case "restaurant":
-                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your a nearby restaurant " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your a nearby restaurant " + activityDestination.getName() + ".";
                         break;
                     case "spa":
-                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local spa " + activityDestination.getName() + ". It's located on " + address + ".";
+                        msg = "Since it's cold outside I found a great activity for you that doesn't include freezing outside. Visit your local spa " + activityDestination.getName() + ".";
                         break;
                 }
                 activityResponse.setMessage(msg);
@@ -748,7 +750,7 @@ public class ActivityAdvisorService {
                 location.setLongitude(activityDestination.getLocation().getLng());
                 activityResponse.setLocation(location);
             } else {
-                activityResponse.setMessage("I couldn't find any night life activities for you, try again later.");
+                activityResponse.setMessage("I couldn't find any indoor activities for you, try again later.");
             }
         }
         return activityResponse;

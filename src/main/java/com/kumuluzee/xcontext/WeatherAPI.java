@@ -41,7 +41,16 @@ public class WeatherAPI {
         JSONObject jsonWeather = new JSONObject(response.body());
         JSONArray jsonArrayWeather = (JSONArray) jsonWeather.get("data");
         JSONObject weather = (JSONObject) jsonArrayWeather.get(0);
-        BigDecimal temp = (BigDecimal) weather.get("temp");
-        return temp.doubleValue();
+        Double temp;
+        if(weather.get("temp") instanceof Integer){
+            Integer tempInteger = (Integer) weather.get("temp");
+            temp = tempInteger.doubleValue();
+        } else {
+            temp = (Double) weather.get("temp");
+        }
+/*
+        BigDecimal temp = BigDecimal.valueOf((Double) weather.get("temp"));
+*/
+        return temp;
     }
 }
