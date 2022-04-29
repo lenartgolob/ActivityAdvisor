@@ -1,4 +1,4 @@
-package com.kumuluzee.xcontext.APIResponses;
+package com.kumuluzee.APIResponses;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

@@ -1,6 +1,6 @@
-package com.kumuluzee.xcontext.APIResponses;
+package com.kumuluzee.GoogleMapsResponse.GeocodeResponse;
 
-public class TrueWayLocation {
+public class Location {
     private double lat;
     private double lng;
 

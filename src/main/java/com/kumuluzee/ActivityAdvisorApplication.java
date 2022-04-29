@@ -1,4 +1,4 @@
-package com.kumuluzee.xcontext;
+package com.kumuluzee;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;

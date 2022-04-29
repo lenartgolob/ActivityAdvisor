@@ -1,4 +1,4 @@
-package com.kumuluzee.xcontext;
+package com.kumuluzee;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;

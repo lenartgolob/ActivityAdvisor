@@ -1,4 +1,4 @@
-package com.kumuluzee.xcontext;
+package com.kumuluzee;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;

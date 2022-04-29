@@ -1,11 +1,11 @@
-package com.kumuluzee.xcontext;
+package com.kumuluzee;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.kumuluz.ee.configuration.utils.ConfigurationUtil;
-import com.kumuluzee.xcontext.APIResponses.ReverseGeocode;
+import com.kumuluzee.APIResponses.ReverseGeocode;
 import org.json.JSONObject;
 
 import javax.enterprise.context.RequestScoped;

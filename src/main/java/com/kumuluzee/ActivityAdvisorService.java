@@ -1,21 +1,14 @@
-package com.kumuluzee.xcontext;
+package com.kumuluzee;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.kumuluz.ee.configuration.utils.ConfigurationUtil;
-import com.kumuluzee.xcontext.APIResponses.ReverseGeocode;
-import com.kumuluzee.xcontext.APIResponses.TrueWayResponse;
+import com.kumuluzee.APIResponses.TrueWayResponse;
 import org.json.JSONObject;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.file.Paths;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -32,6 +25,9 @@ public class ActivityAdvisorService {
     @Inject
     private WeatherAPI weatherBean;
 
+    @Inject
+    private GoogleMapsClient googleMapsBean;
+
     private ObjectMapper objectMapper = new ObjectMapper();
 
     public ActivityAdvisorService(){
@@ -40,6 +36,17 @@ public class ActivityAdvisorService {
     }
 
     public ActivityResponse getActivity() throws Exception{
+        // Changes coordinates based on placeId
+        if(xContext.getContext().getPlaceId() != null) {
+            Context context = xContext.getContext();
+            com.kumuluzee.GoogleMapsResponse.GeocodeResponse.Location placeLocation = new com.kumuluzee.GoogleMapsResponse.GeocodeResponse.Location();
+            placeLocation = googleMapsBean.getCoordinates(xContext.getContext().getPlaceId()).getResult().getGeometry().getLocation();
+            Location location = new Location();
+            location.setLatitude(placeLocation.getLat());
+            location.setLongitude(placeLocation.getLng());
+            context.setLocation(location);
+            xContext.setContext(context);
+        }
         // Lokacija je
         if(xContext.getContext().getLocation() != null){
             if(xContext.getContext().getTemperature() == null){
@@ -186,12 +193,12 @@ public class ActivityAdvisorService {
         int radius;
         // Changes radius of results based on battery %
         if(xContext.getContext().getBatteryPercentage() == null){
-            radius = 10000;
+            radius = 2000;
         } else {
             if(xContext.getContext().getBatteryPercentage()>30){
-                radius = 10000;
-            } else {
                 radius = 2000;
+            } else {
+                radius = 1000;
             }
         }
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
@@ -449,12 +456,12 @@ public class ActivityAdvisorService {
         Location location = new Location();
         int radius;
         if(xContext.getContext().getBatteryPercentage() == null){
-            radius = 10000;
+            radius = 2000;
         } else {
             if(xContext.getContext().getBatteryPercentage()>30){
-                radius = 10000;
-            } else {
                 radius = 2000;
+            } else {
+                radius = 1000;
             }
         }
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
@@ -557,12 +564,12 @@ public class ActivityAdvisorService {
         Location location = new Location();
         int radius;
         if(xContext.getContext().getBatteryPercentage() == null){
-            radius = 10000;
+            radius = 2000;
         } else {
             if(xContext.getContext().getBatteryPercentage()>30){
-                radius = 10000;
-            } else {
                 radius = 2000;
+            } else {
+                radius = 1000;
             }
         }
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();
@@ -625,12 +632,12 @@ public class ActivityAdvisorService {
         Location location = new Location();
         int radius;
         if(xContext.getContext().getBatteryPercentage() == null){
-            radius = 10000;
+            radius = 2000;
         } else {
             if(xContext.getContext().getBatteryPercentage()>30){
-                radius = 10000;
-            } else {
                 radius = 2000;
+            } else {
+                radius = 1000;
             }
         }
         List<TrueWayResponse> destinations = new ArrayList<TrueWayResponse>();

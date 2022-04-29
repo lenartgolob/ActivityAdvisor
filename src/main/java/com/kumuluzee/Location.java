@@ -1,4 +1,4 @@
-package com.kumuluzee.xcontext;
+package com.kumuluzee;
 
 public class Location{
     private Double latitude;
