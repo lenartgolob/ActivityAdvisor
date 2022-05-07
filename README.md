@@ -30,6 +30,6 @@ And lastly the steps parameter. ActivityAdvisor takes into account steps only if
 
 ## Other services implemented
 ​
-__Activity integrates with__:
+__Activity Advisor integrates with__:
 1. [__Google Maps Geocode API__](https://developers.google.com/maps/documentation/geocoding/overview) for conversion between place_id and coordinates and vice versa
 2. [__True Way Places API__](https://rapidapi.com/trueway/api/trueway-places) for getting activities based on location
