@@ -1,8 +1,8 @@
 # Introduction
 ​
-__Activity Advisor API__ is a REST API that suggests activities based on location, time, temperature, phone battery percentage and steps. The activities are selected from TrueWay Destinations API and are randomly selected based on the sent parameters. All the parameters must be sent in the X-Context header.
+__Activity Advisor API__ is a REST API that suggests activities based on location, time, temperature, phone battery percentage and steps. The activities are selected from TrueWay Places API and are randomly selected based on the sent parameters. All the parameters must be sent in the X-Context header.
 
-[__OpenAPI documentation__](http://localhost:8080/api-specs/ui/?url=http://localhost:8080/api-specs/activity-advisor/openapi.json)
+[__OpenAPI documentation__](http://130.61.179.62:8080/api-specs/ui/?url=http://130.61.179.62:8080/api-specs/activity-advisor/openapi.json)
 ​
 ## Purpose
 ​
@@ -16,7 +16,7 @@ __Typical use case__ scenario consists of:
 ​
 ## Functionality
 ​
-The activity is selected based on sent parameters. True Way Destinations API serves the ActivityAdvisor API with a pool of different destinations based on location. 
+The activity is selected based on sent parameters. True Way Places API serves the ActivityAdvisor API with a pool of different places based on location. 
 
 So naturally the most important parameter is location. Location can be sent to Activity advisor API as a JSON object location with children longitude and latitude, or it can be sent as a place_id, which ActivityAdviser then turns into coordinates.
 
@@ -27,3 +27,9 @@ The temperature parameter is implemented in a way where if the temperature is hi
 The battery percentage parameter is implemented is a way where the battery percentage is lower than 30%, ActivityAdvisor only pick between activities that are in the 1km radius. And if the battery percentage is higher, ActivityAdvisor picks activities in the 2km radius.
 
 And lastly the steps parameter. ActivityAdvisor takes into account steps only if the step count for the day is more than the average (10000 steps) and if the steps are higher than that treshold, ActivityAdvisor suggests a more relaxing activity.
+
+## Other services implemented
+​
+__Activity integrates with__:
+1. [__Google Maps Geocode API__](https://developers.google.com/maps/documentation/geocoding/overview) for conversion between place_id and coordinates and vice versa
+2. [__True Way Places API__](https://rapidapi.com/trueway/api/trueway-places) for getting activities based on location
