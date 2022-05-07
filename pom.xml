@@ -15,8 +15,8 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
         <kumuluzee.version>3.12.1</kumuluzee.version>
+        <kumuluzee-openapi.version>1.0.1</kumuluzee-openapi.version>
     </properties>
 
     <dependencyManagement>
@@ -60,6 +60,16 @@
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20210307</version>
+        </dependency>
+        <dependency>
+            <groupId>com.kumuluz.ee.openapi</groupId>
+            <artifactId>kumuluzee-openapi</artifactId>
+            <version>${kumuluzee-openapi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.kumuluz.ee.openapi</groupId>
+            <artifactId>kumuluzee-openapi-ui</artifactId>
+            <version>${kumuluzee-openapi.version}</version>
         </dependency>
     </dependencies>
 

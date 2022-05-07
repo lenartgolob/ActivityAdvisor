@@ -2,6 +2,7 @@ com\kumuluzee\ActivityAdvisorService$1.class
 com\kumuluzee\ActivityAdvisorService$8.class
 com\kumuluzee\Location.class
 com\kumuluzee\ActivityAdvisorService$6.class
+META-INF\services\javax.ws.rs.core.Application
 com\kumuluzee\ActivityAdvisorService$3.class
 com\kumuluzee\ActivityResponse.class
 com\kumuluzee\APIResponses\TrueWayResponse.class
@@ -23,5 +24,6 @@ com\kumuluzee\ActivityAdvisorService$2.class
 com\kumuluzee\ActivityAdvisorService$7.class
 com\kumuluzee\GoogleMapsResponse\GeocodeResponse\Result.class
 com\kumuluzee\ActivityAdvisorApplication.class
+api-specs\activity-advisor\openapi-configuration.json
 com\kumuluzee\WeatherAPI.class
 com\kumuluzee\ActivityAdvisorService$5.class

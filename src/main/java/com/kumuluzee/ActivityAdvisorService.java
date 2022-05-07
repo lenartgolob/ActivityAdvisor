@@ -39,8 +39,7 @@ public class ActivityAdvisorService {
         // Changes coordinates based on placeId
         if(xContext.getContext().getPlaceId() != null) {
             Context context = xContext.getContext();
-            com.kumuluzee.GoogleMapsResponse.GeocodeResponse.Location placeLocation = new com.kumuluzee.GoogleMapsResponse.GeocodeResponse.Location();
-            placeLocation = googleMapsBean.getCoordinates(xContext.getContext().getPlaceId()).getResult().getGeometry().getLocation();
+            com.kumuluzee.GoogleMapsResponse.GeocodeResponse.Location placeLocation = googleMapsBean.getCoordinates(xContext.getContext().getPlaceId()).getResult().getGeometry().getLocation();
             Location location = new Location();
             location.setLatitude(placeLocation.getLat());
             location.setLongitude(placeLocation.getLng());
