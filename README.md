@@ -1,6 +1,8 @@
 # Introduction
 ​
 __Activity Advisor API__ is a REST API that suggests activities based on location, time, temperature, phone battery percentage and steps. The activities are selected from TrueWay Destinations API and are randomly selected based on the sent parameters. All the parameters must be sent in the X-Context header.
+
+[__OpenAPI documentation__](http://localhost:8080/api-specs/ui/?url=http://localhost:8080/api-specs/activity-advisor/openapi.json)
 ​
 ## Purpose
 ​
